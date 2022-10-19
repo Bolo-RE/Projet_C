@@ -1,7 +1,8 @@
 //Goussard Philemon et Iglesias Guillaume
 //Projet electricite GIF 2022 
+//Wed Oct 19 02:17:08 PM CEST 2022
 
-```c
+
 #include <stdio.h>
 
 
@@ -10,16 +11,16 @@
 	typedef struct ville {
 		int codePostal;
 		struct ville * villeSuivante;
-	} Tville;
+	} Ville;
 
-	typedef Tville * PTville;
+	typedef Ville * PVille;
 	
 /////////  Liste des lignes electriques /////////////
 	typedef struct lignesElectrique {
 		int puissance;
 		// pointeur sur une ville
-		PTville villeDesservie;	
-		// liste simplement chain�e
+		PVille villeDesservie;	
+		// liste simplement chainee
 		struct lignesElectrique * ligneSuivante ;
 	} TlignesElectrique;
 	
@@ -30,10 +31,19 @@
 		int codeCentrale;
 		// Pointeur sur la liste des lignes 
 		PTligneElectrique villeDependante;
-		// Liste doublement chain�e 
+		// Liste doublement chainee 
 		struct centrale * ptsuivant;
 		struct centrale * ptprecedent;
 	}Tcentrale;
 	
 	typedef Tcentrale * PTcentrale;
-```
+
+
+// TODO Ajouter / Retirer des centrales et des villes
+// TODO Modifier la puissance des centrales
+// TODO Ajouter / Retirer des lignes electriques
+// TODO Enregistrer le reseau / Charger un nouveau
+
+int main(void){
+	;
+}
