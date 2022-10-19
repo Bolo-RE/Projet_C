@@ -5,8 +5,9 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <windows.h>
 
+
+// WARNING Cannot change the simple/double chained structure
 
 /////////  Liste des villes  ////////////////////////
 	typedef struct ville {
@@ -32,6 +33,8 @@
 		int codeCentrale;
 		// Pointeur sur la liste des lignes 
 		PTligneElectrique villeDependante;
+		int puissance;
+		// int coeurs;
 		// Liste doublement chainee 
 		struct centrale * ptsuivant;
 		struct centrale * ptprecedent;
@@ -41,7 +44,11 @@
 
 
 // TODO Ajouter / Retirer des centrales et des villes
+// void insert(void* list, )
 // TODO Modifier la puissance des centrales
+void change_power(Tcentrale centrale, int power){	
+	centrale.puissance = power;
+}
 // TODO Ajouter / Retirer des lignes electriques
 // TODO Enregistrer le reseau / Charger un nouveau
 // TODO Menu
