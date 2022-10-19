@@ -1,0 +1,2 @@
+-> Could create a super struct linked_list that every other object will contain (dirty OOP)
+-> For simple linked list; the prev field would not be defined (can be check ez if NULL)
