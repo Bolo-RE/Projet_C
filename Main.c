@@ -5,7 +5,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-
+#include <stdarg.h>
 
 // WARNING Cannot change the simple/double chained structure
 
@@ -18,39 +18,44 @@
 	typedef Ville * PVille;
 	
 /////////  Liste des lignes electriques /////////////
-	typedef struct lignesElectrique {
+	typedef struct ligne {
 		int puissance;
 		// pointeur sur une ville
 		PVille villeDesservie;	
 		// liste simplement chainee
-		struct lignesElectrique * ligneSuivante ;
-	} TlignesElectrique;
+		struct ligne * ligneSuivante ;
+	} ligneElec;
 	
-	typedef TlignesElectrique * PTligneElectrique;
+	// typedef ligneElec * li;
 	
 //////////  Liste des centrales electriques ////////	
 	typedef struct centrale{
 		int codeCentrale;
 		// Pointeur sur la liste des lignes 
-		PTligneElectrique villeDependante;
+		ligneElec* villesDependantes;
 		int puissance;
 		// int coeurs;
 		// Liste doublement chainee 
-		struct centrale * ptsuivant;
-		struct centrale * ptprecedent;
+		struct centrale * suivant;
+		struct centrale * precedent;
 	}Tcentrale;
 	
 	typedef Tcentrale * PTcentrale;
 
 
 // TODO Ajouter / Retirer des centrales et des villes
-// void insert(void* list, )
+// void insert(void* list, struct <type>, ... (init values))
 // TODO Modifier la puissance des centrales
 void change_power(Tcentrale centrale, int power){	
-	centrale.puissance = power;
+	ligneElec* lignes = centrale.villesDependantes;
+	while(lignes != NULL){
+		lignes->puissance = power;
+		lignes = lignes->ligneSuivante;
+	}
 }
 // TODO Ajouter / Retirer des lignes electriques
 // TODO Enregistrer le reseau / Charger un nouveau
+
 // TODO Menu
 
 
