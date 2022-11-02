@@ -151,7 +151,11 @@ void load(FILE* file){
 
 int main(void){
   struct ville* v = malloc(sizeof(struct ville));
-  add_ville(v, 12);
+  struct ville* chain = v;
+  chain = add_ville(v, 12);
+  chain = add_ville(chain, 13);
+  chain = add_ville(chain, 14);
+  chain = rm_ville(v, 13);
   struct ville* buf = v;
   while(buf != NULL){
     printf("value is %d\n", buf->code);
