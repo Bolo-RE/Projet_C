@@ -148,3 +148,14 @@ void save(struct ligne* lignes, struct centrale* centrales, struct ville* villes
 void load(FILE* file){
   // TODO
 }
+
+int main(void){
+  struct ville* v = malloc(sizeof(struct ville));
+  add_ville(v, 12);
+  struct ville* buf = v;
+  while(buf != NULL){
+    printf("value is %d\n", buf->code);
+    buf = buf->suivant;
+  }
+  // TODO Free
+}
