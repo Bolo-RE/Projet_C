@@ -41,7 +41,10 @@
 
 
 // TODO Ajouter / Retirer des centrales et des villes
+
+
 // TODO Modifier la puissance des centrales
+
 // TODO Ajouter / Retirer des lignes electriques
 // TODO Enregistrer le reseau / Charger un nouveau
 
