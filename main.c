@@ -24,7 +24,7 @@ struct centrale {
   struct centrale* prev;
 };
 
-// TODO Ajouter / Retirer ville
+// Ajouter / Retirer ville
 // Should rewrite to void ? (using double pointer)
 struct ville* add_ville(struct ville* ville, int code){
   // Using ANSI-C auto cast
@@ -35,7 +35,7 @@ struct ville* add_ville(struct ville* ville, int code){
 }
 
 // Here ville argument is assumed to be the 1st link in the chain
-// TODO Implement as double pointer in order to return error code
+// Implement as double pointer in order to return error code
 struct ville* rm_ville(struct ville* ville, int code){
   struct ville* temp = ville;
   while(temp->suivant != NULL){
@@ -54,7 +54,7 @@ struct ville* rm_ville(struct ville* ville, int code){
   }
   return temp;
 }
-// TODO Ajouter / Retirer centrale
+// Ajouter / Retirer centrale
 struct centrale* add_centrale(struct centrale* centrale, int id){
   struct centrale* temp = malloc(sizeof(struct centrale));
   temp->id = id;
@@ -82,7 +82,7 @@ struct centrale* rm_centrale(struct centrale* centrale, int id){
   }
   return centrale;
 }
-// TODO Ajouter / Retirer ligne
+// Ajouter / Retirer ligne
 struct ligne* add_ligne(struct ligne* lignes, int puissance, struct ville* ville){
   struct ligne* temp = malloc(sizeof(struct ligne));
   temp->puissance = puissance;
@@ -116,12 +116,35 @@ void change_power(struct centrale* centrale, int puissance){
     lignes = lignes->suivant;
   }
 }
-// TODO Recuperer la valeur de puissance d'une ville et la repartition / centrale
-void power_display(struct ligne* lignes, int ville){
-  
+// Recuperer la valeur de puissance d'une ville et la repartition / centrale
+void power_display(struct centrale* centrales, int code_ville){
+  int p_total = 0;
+  while(centrales->suivant != NULL){
+    
+    struct ligne* lignes = centrales->lignes;
+    while(lignes->suivant != NULL){
+      if(lignes->ville->code == code_ville){
+        //TODO Setup interface popup for that
+        printf("La centrale %d apporte %d energie a la ville %d", centrales->id, lignes->puissance, code_ville);  
+        p_total += lignes->puissance;
+      }
+      lignes= lignes->suivant;
+    }
+    centrales = centrales->suivant;  
+  }
+  printf("Au total, la ville %d recoit %d energie", code_ville, p_total);
 }
 // TODO Enregistrer le reseau
 void save(struct ligne* lignes, struct centrale* centrales, struct ville* villes){
-  ;
+  while(centrales->suivant != NULL){
+    struct ligne* lignes = centrales->lignes;
+    while(lignes->suivant != NULL){
+      // TODO Find the right type of structure to save the ville; lignes and centrales values
+    }
+    centrales = centrales->suivant;
+  }
 }
 // TODO Charger le reseau depuis un fichier
+void load(FILE* file){
+  // TODO
+}
