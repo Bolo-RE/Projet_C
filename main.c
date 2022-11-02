@@ -116,9 +116,12 @@ void change_power(struct centrale* centrale, int puissance){
     lignes = lignes->suivant;
   }
 }
+// TODO Recuperer la valeur de puissance d'une ville et la repartition / centrale
+void power_display(struct ligne* lignes, int ville){
+  
+}
 // TODO Enregistrer le reseau
 void save(struct ligne* lignes, struct centrale* centrales, struct ville* villes){
   ;
 }
 // TODO Charger le reseau depuis un fichier
-// TODO Recuperer la valeur de puissance d'une ville et la repartition / centrale
