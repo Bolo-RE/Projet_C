@@ -11,4 +11,4 @@
     [ ] - Définir des fenêtres
     [ ] - Se déplacer dans une fenêtre (opt.)
 [ ] - Gérer les inputs utilisateurs
-[ ] - Menu de sélection
+[-] - Menu de sélection
