@@ -5,10 +5,12 @@
 [x] - Clear
     [x] - Screen
     [x] - Fenêtre
-[ ] - Window
-    [ ] - Mettre en mémoire tampon l'ancien contenu
+[-] - Window
+    [-] - Mettre en mémoire tampon l'ancien contenu
     [ ] - Réafficher cet ancien contenu
-    [ ] - Définir des fenêtres
+    [-] - Définir des fenêtres
     [ ] - Se déplacer dans une fenêtre (opt.)
-[ ] - Gérer les inputs utilisateurs
+[x] - Gérer les inputs utilisateurs
 [-] - Menu de sélection
+    [x] - Main menu
+    [ ] - Menu générique
