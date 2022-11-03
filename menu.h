@@ -16,8 +16,8 @@ char mainMenu( HANDLE hConsole ) {
         printf_s(" 2. Charger projet    ");
         gotoligcol(hConsole, 24, 48);
         printf_s(" 3.     Quitter       ");
-            gotoligcol(hConsole, 29, 0);
-            printf_s("               ");
+        gotoligcol(hConsole, 29, 0);
+        printf_s("               ");
 
 
         if (select < 0) {

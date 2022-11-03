@@ -6,38 +6,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <windows.h>
-
-
-/////////  Liste des villes  ////////////////////////
-	typedef struct ville {
-		int codePostal;
-		struct ville * villeSuivante;
-	} Ville;
-
-	typedef Ville * PVille;
-	
-/////////  Liste des lignes electriques /////////////
-	typedef struct lignesElectrique {
-		int puissance;
-		// pointeur sur une ville
-		PVille villeDesservie;	
-		// liste simplement chainee
-		struct lignesElectrique * ligneSuivante ;
-	} TlignesElectrique;
-	
-	typedef TlignesElectrique * PTligneElectrique;
-	
-//////////  Liste des centrales electriques ////////	
-	typedef struct centrale{
-		int codeCentrale;
-		// Pointeur sur la liste des lignes 
-		PTligneElectrique villeDependante;
-		// Liste doublement chainee 
-		struct centrale * ptsuivant;
-		struct centrale * ptprecedent;
-	}Tcentrale;
-	
-	typedef Tcentrale * PTcentrale;
+#include "defs.h"
+#include "menu.h"
 
 
 // TODO Ajouter / Retirer des centrales et des villes
@@ -49,7 +19,42 @@
 // TODO Enregistrer le reseau / Charger un nouveau
 
 int main(void){
-	printf("Hello world!");
+	HANDLE hConsole=GetStdHandle(STD_OUTPUT_HANDLE);
+
+	// switch(mainMenu(hConsole)) {
+	// 	case 0:
+	// 		clear();
+	// 		printf_s("Nouveau projet !");
+	// 		break;
+	// 	case 1:
+	// 		clear();
+	// 		printf_s("Charger projet !");
+	// 		break;
+	// 	case 2:
+	// 		clear();
+	// 		printf_s("Fermeture...");
+	// 		return 0;
+	// 	default:
+	// 		printf_s("Erreur dans la selection du menu");
+	// }
+
+	unsigned char winBase[120][30][2]; // Matrice à manipuler pour le fond
+	// Lig, Col, Texte
+
+	for (unsigned char i = 0; i < 120; i++)
+	{
+		for (unsigned char j = 0; j < 30; j++)
+		{
+			winBase[i][j][0] = ' ';
+			winBase[i][j][1] = color(15,0);
+		}
+	}
+
+	refreshBase(hConsole, winBase);
+
+	getch();
+    SetConsoleTextAttribute(hConsole, 16*0+15);
+	return 0;
 }
 
 

@@ -21,6 +21,10 @@ void clear(/* HANDLE hConsole */) {
     // }
 }
 
+unsigned char color(unsigned char text, unsigned char bkg) {
+    return bkg*16+text;
+}
+
 void noise(HANDLE hConsole) {
     gotoligcol(hConsole, 0, 0);
     for (int i = 0; i < 120*3; i++)
@@ -40,3 +44,18 @@ void clearWindow(HANDLE hConsole, int from_lig, int from_col, int to_lig, int to
         gotoligcol(hConsole, from_lig + i, from_col);
     }
 }
+
+void refreshBase(HANDLE hConsole, unsigned char winBase[120][30][2]) {
+    clear();
+    for (char i = 0; i < 30; i++)
+    {
+        for (char j = 0; j < 120; j++)
+        {
+            gotoligcol(hConsole, i, j);
+            SetConsoleTextAttribute(hConsole, (WORD)winBase[i][j][1]);
+            printf_s("%c", (char)winBase[i][j][0]);
+        }
+        
+    }
+    
+};
