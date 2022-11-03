@@ -2,9 +2,9 @@
 ## 03/11/2022
 -------------------------------------------------------------------------------
 
-[ ] - Clear
-    [ ] - Screen
-    [ ] - Fenêtre
+[x] - Clear
+    [x] - Screen
+    [x] - Fenêtre
 [ ] - Window
     [ ] - Mettre en mémoire tampon l'ancien contenu
     [ ] - Réafficher cet ancien contenu
