@@ -49,7 +49,7 @@
 // TODO Enregistrer le reseau / Charger un nouveau
 
 int main(void){
-	;
+	printf("Hello world!");
 }
 
 

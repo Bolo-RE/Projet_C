@@ -55,7 +55,7 @@ void afficheMenu(HANDLE hConsole){  //Affiche les différents choix à l'utilisa
 		gotoligcol(5,5);printf("*********************************");
 		gotoligcol(6,5);printf("*             MENU              *");
 		gotoligcol(7,5);printf("*********************************");	
-		SetConsoleTextAttribute(hConsole, 16*0+15);			
+		SetConsoleTextAttribute(hConsole, 16*0+15);
 		gotoligcol(10,9);printf("1 - Afficher les centrales ");	
 		gotoligcol(11,9);printf("2 - Afficher les villes ");
 		gotoligcol(12,9);printf("3 - Afficher les lignes ");
