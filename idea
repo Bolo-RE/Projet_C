@@ -3,3 +3,8 @@
 -> Insert can be done duplicating the object and computing the offset of each field at compile time ; then
 pass the right amount to the insert function and use some pointer arthimetic to do the changes
 -> Use _Generic to set the types for copying
+
+Save file format
+values are between #TYPE #FINTYPE
+values are marked attr:value
+ 

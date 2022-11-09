@@ -24,8 +24,16 @@ struct centrale {
   struct centrale* prev;
 };
 
+
+// Will contains the pointers
+static long long p_centrale;
+static long long p_ville;
+
+// TODO? Create functions to manipulate those addresses to increase readability
+
 // Ajouter / Retirer ville
 // Should rewrite to void ? (using double pointer)
+// TODO Get the ville struct from the ID
 struct ville* add_ville(struct ville* ville, int code){
   // Using ANSI-C auto cast
   struct ville* temp = malloc(sizeof(struct ville));
@@ -124,8 +132,8 @@ void power_display(struct centrale* centrales, int code_ville){
     struct ligne* lignes = centrales->lignes;
     while(lignes->suivant != NULL){
       if(lignes->ville->code == code_ville){
-        //TODO Setup interface popup for that
         printf("La centrale %d apporte %d energie a la ville %d", centrales->id, lignes->puissance, code_ville);  
+        // TODO how to print this information on the screen ?
         p_total += lignes->puissance;
       }
       lignes= lignes->suivant;
@@ -135,31 +143,53 @@ void power_display(struct centrale* centrales, int code_ville){
   printf("Au total, la ville %d recoit %d energie", code_ville, p_total);
 }
 // TODO Enregistrer le reseau
-void save(struct ligne* lignes, struct centrale* centrales, struct ville* villes){
-  while(centrales->suivant != NULL){
-    struct ligne* lignes = centrales->lignes;
-    while(lignes->suivant != NULL){
-      // TODO Find the right type of structure to save the ville; lignes and centrales values
-    }
-    centrales = centrales->suivant;
+void save(struct centrale* centrales, struct ville* villes, char* fichier){
+  // TODO Check if this network has already been saved ;if true then overwrite else create new file
+  // fileexists(fichier);
+  if(fichier == NULL){
+    fichier = "network.bck";
   }
+  char* head = "#VILLES";
+  char* tail = "#FINVILLES";
+  // TODO Check if centrale, ville and lignes are at first position (get the addr of the first link)
+  if(villes == (struct ville*)p_ville){
+    // TODO Setup if not working
+  }
+  FILE* fp;
+  if(fp == NULL){
+    printf("Error while trying to create file !\n");
+  }
+  fp = fopen(fichier, "w");
+  fputs("#VILLES\n", fp);
+  
+  while(villes->suivant != NULL){
+    fprintf(fp, "%d\n", villes->code);
+    villes = villes->suivant;
+  }
+  fputs("#FINVILLE\n#CENTRALE", fp);
+  while(centrales->suivant != NULL){
+    fprintf( )
+  }
+  fputs("#FINCENTRALE",fp);
 }
 // TODO Charger le reseau depuis un fichier
 void load(FILE* file){
-  // TODO
+  // First loads up towns then links then centrals
 }
 
 int main(void){
   struct ville* v = malloc(sizeof(struct ville));
+  struct centrale* c = malloc(sizeof(struct centrale));
   struct ville* chain = v;
   chain = add_ville(v, 12);
   chain = add_ville(chain, 13);
   chain = add_ville(chain, 14);
-  chain = rm_ville(v, 13);
-  struct ville* buf = v;
-  while(buf != NULL){
-    printf("value is %d\n", buf->code);
-    buf = buf->suivant;
-  }
-  // TODO Free
+  save(c, v,NULL);
+//   chain = rm_ville(v, 13);
+//   struct ville* buf = v;
+//   while(buf != NULL){
+//     printf("value is %d\n", buf->code);
+//     buf = buf->suivant;
+//   }
+//   // TODO Free
 }
