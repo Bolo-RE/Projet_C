@@ -22,4 +22,4 @@ void clear(/* HANDLE hConsole */) {
     //    printf_s(" "); 
     // }
 }
-
+//
