@@ -4,6 +4,7 @@ lignes reliant les villes et les centrales. Les lignes seront de la couleur de l
 #include <stdlib.h>
 #include <stdio.h>
 #include <windows.h>
+#include <conio.h>
 
 void gotoligcol( int lig, int col )
 	{
