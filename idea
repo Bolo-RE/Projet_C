@@ -3,3 +3,10 @@
 -> Insert can be done duplicating the object and computing the offset of each field at compile time ; then
 pass the right amount to the insert function and use some pointer arthimetic to do the changes
 -> Use _Generic to set the types for copying
+
+
+## TUI
+- One and only one window. Contains a toolbar (can be hidden)
+- The toolbar contains the shortkeys to the != functions
+- Interaction H/M by one line at the bottom of the screen
+- The main area will contains the central/town links

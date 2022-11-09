@@ -4,6 +4,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdarg.h>
 
 struct ville {
   int code;
@@ -23,6 +24,10 @@ struct centrale {
   struct centrale* suivant;
   struct centrale* prev;
 };
+
+void add(void* structure, int args_offsets[], ...){
+  ;
+}
 
 // Ajouter / Retirer ville
 // Should rewrite to void ? (using double pointer)
