@@ -8,7 +8,7 @@
 #include <windows.h>
 #include "defs.h"
 #include "menu.h"
-
+#include <conio.h>
 
 // TODO Ajouter / Retirer des centrales et des villes
 

@@ -13,7 +13,6 @@ void gotoligcol( int lig, int col )
 		mycoord.Y = lig;
 		SetConsoleCursorPosition( GetStdHandle( STD_OUTPUT_HANDLE ), mycoord );
 	}
-
 void clear(/* HANDLE hConsole */) {
     system("cls");
     // Solution de la gitanerie dessous si cls ne marche pas
@@ -23,3 +22,4 @@ void clear(/* HANDLE hConsole */) {
     //    printf_s(" "); 
     // }
 }
+
