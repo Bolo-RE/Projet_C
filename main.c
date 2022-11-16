@@ -25,11 +25,16 @@ struct centrale {
 };
 
 
-// Will contains the pointers
-static long long p_centrale;
-static long long p_ville;
+// Contient le pointeur vers le premier maillon
+static unsigned long p_ville;
 
-// TODO? Create functions to manipulate those addresses to increase readability
+void set_p_ville(unsigned long ptr){
+  p_ville = ptr;
+}
+
+void* get_p_ville(){
+  return (void*) p_ville;
+}
 
 // Ajouter / Retirer ville
 // Should rewrite to void ? (using double pointer)
@@ -142,10 +147,12 @@ void power_display(struct centrale* centrales, int code_ville){
   }
   printf("Au total, la ville %d recoit %d energie", code_ville, p_total);
 }
+
 // TODO Enregistrer le reseau
 void save(struct centrale* centrales, struct ville* villes, char* fichier){
   // TODO Check if this network has already been saved ;if true then overwrite else create new file
-  // fileexists(fichier);
+  // fileexists(fichier); -> if .bck file exists; 
+  // TODO For the moment the last saved file is wiped and we write everything back ; maybe thing of append?
   if(fichier == NULL){
     fichier = "network.bck";
   }
@@ -168,12 +175,19 @@ void save(struct centrale* centrales, struct ville* villes, char* fichier){
   }
   fputs("#FINVILLE\n#CENTRALE", fp);
   while(centrales->suivant != NULL){
-    fprintf( )
+    fprintf(fp, "%d\n", centrales->id);
+    struct ligne* ligne = centrales->lignes;
+    fprintf(fp, "#LIGNE\n");
+    while(ligne->suivant != NULL){
+    fprintf(fp, "%d\n%d\n", ligne->ville->code, ligne->puissance);
+    ligne = ligne->suivant;
+    }
+    fprintf(fp, "#FINLIGNE\n");
   }
   fputs("#FINCENTRALE",fp);
 }
 // TODO Charger le reseau depuis un fichier
-void load(FILE* file){
+void load(char* filename){
   // First loads up towns then links then centrals
 }
 
@@ -184,12 +198,18 @@ int main(void){
   chain = add_ville(v, 12);
   chain = add_ville(chain, 13);
   chain = add_ville(chain, 14);
+  struct centrale* chain_c = c;
+  puts("debug");
+  chain_c = add_centrale(c, 1);
+  chain_c->lignes = add_ligne(chain_c->lignes, 100, chain);
+  chain_c = add_centrale(chain_c, 2);
+  chain_c->lignes = add_ligne(chain_c->lignes, 100, chain);
   save(c, v,NULL);
-//   chain = rm_ville(v, 13);
-//   struct ville* buf = v;
-//   while(buf != NULL){
-//     printf("value is %d\n", buf->code);
-//     buf = buf->suivant;
-//   }
+  // chain = rm_ville(v, 13);
+  // struct centrale* buf = chain_c;
+  // while(buf != NULL){
+  //   printf("value is %d\n", buf->lignes);
+  //   buf = buf->suivant;
+  // }
 //   // TODO Free
 }
