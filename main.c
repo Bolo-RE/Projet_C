@@ -3,8 +3,8 @@
 //Wed Oct 19 02:17:08 PM CEST 2022
 
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
 
 struct ville {
   int code;
@@ -26,7 +26,7 @@ struct centrale {
   struct centrale* prev;
 };
 
-
+// TODO Error code handling
 // Contient le pointeur vers la premiere ville
 static unsigned long p_ville;
 
@@ -72,23 +72,23 @@ int add_ville(int code, char* name){
   return 0;
 }
 
-// Here ville argument is assumed to be the 1st link in the chain
-int rm_ville(struct ville** ville, int code){
+int rm_ville(int code){
+  struct ville* p = get_p_ville();
+  struct ville** ville = &p;
   while((*ville)->suivant != NULL){
-    // TODO check out how this should be done
     if ((*ville)->suivant->code == code){
-      // Need debug
       if ((*ville)->suivant->suivant == NULL){
         (*ville)->suivant = NULL;
       }else{
         (*ville)->suivant = (*ville)->suivant->suivant;
       }
+      return 0;
     }
     else{
       (*ville) = (*ville)->suivant;
     }
   }
-  return 0;
+  return -1;
 }
 
 struct centrale* get_centrale(struct centrale* centrales, int id){
@@ -221,16 +221,20 @@ void save(struct centrale* centrales,  char* fichier){
   FILE* fp;
   if(fp == NULL){
     printf("Error while trying to create file !\n");
+    return;
   }
   fp = fopen(fichier, "w");
+  if (fp == NULL){
+    printf("Error while trying to open file");
+  }
   fputs("#VILLES\n", fp);
   
-  while(villes->suivant != NULL){
+  while(villes != NULL){
     fprintf(fp, "%d:%s\n", villes->code, villes->name);
     villes = villes->suivant;
   }
   fputs("#FINVILLE\n#CENTRALE\n", fp);
-  while(centrales->suivant != NULL){
+  while(centrales != NULL){
     // printf("central id %d\n", centrales->id);
     fprintf(fp, "%d\n", centrales->id);
     printf("lignes : %p\n", centrales->lignes);
@@ -250,10 +254,72 @@ void save(struct centrale* centrales,  char* fichier){
     centrales = centrales->suivant;
   }
   fputs("#FINCENTRALE",fp);
+  fclose(fp);
 }
 // TODO Charger le reseau depuis un fichier
-void load(char* filename){
-  // First loads up towns then links then centrals
+void load(char* filename, struct ville* villes, struct centrale* centrales){
+  if(filename == NULL){
+    filename = "network.bck";
+  }
+  FILE* fp;
+  fp  = fopen(filename, "r");
+  if(fp == NULL){
+    printf("Error while opening file ! \n");
+    return;
+  }
+  char line[100]; // should be enough
+  int steps = 0;
+  char* name;
+  int id ;
+  int power;
+  int central_num = 0;
+  while(fgets(line, sizeof(line), fp) != NULL){
+    // the \n is very important here
+    // TODO Create a switch using those values
+    // TODO Setup continue when line contains only types
+    // TODO Rewrite this shit
+    if(strcmp(line, "#VILLE\n") == 0){
+      steps = 0;
+      continue;
+    }
+    if(strcmp(line, "#FINVILLE\n") == 0){
+      puts("test 2");
+     steps = 1;   
+    }
+    if(strcmp(line, "#LIGNE\n") == 0){
+      puts("test 1");
+     steps = 2;   
+    }
+    if(strcmp(line, "#FINLIGNE\n") == 0){
+      puts("test 0");
+        steps = 1;
+    };
+    if(strcmp(line, "#FINCENTRALE\n") == 0){
+      puts("test 3");
+      return;
+    }
+    switch(steps){
+      case 0:
+        name = strtok(line, ":");      
+        name = strtok(NULL, ":");
+        sprintf(line, "%d", id);
+        add_ville(id, name);
+        break;
+      case 1:
+        sprintf(line, "%d", id);
+        add_centrale(&centrales,id);
+        central_num++;
+        break;
+      case 2:
+      // TODO Find a way to keep reference to central until passing to the next
+        add_ligne(get_centrale(centrales, central_num), power, get_ville(id));
+        break;
+      default:
+        printf("Case is %d\n", steps);
+        break;
+    }
+  }
+  fclose(fp);
 }
 
 int main(void){
@@ -271,12 +337,12 @@ int main(void){
   add_centrale(&c, 4);
   add_ligne(get_centrale(c, 1), 100, get_ville(1));
   add_ligne(get_centrale(c, 1), 100, get_ville(2));
-  printf("test ligne %d", get_centrale(c, 1)->lignes->ville->code);
   // add_centrale(&c, 2);
   add_ligne(get_centrale(c,2), 100, get_ville(2));
-  save(get_centrale(c,1),NULL);
-  // chain = rm_ville(v, 13);
-  // struct ville* buf = get_p_ville();
+  // save(get_centrale(c,1),NULL);
+  load(NULL, v, c);
+  rm_ville(5);
+  struct ville* buf = get_p_ville();
   // while(buf != NULL){
   //   printf("value is %s\n", buf->name);
   //   buf = buf->suivant;
