@@ -258,69 +258,88 @@ void save(struct centrale* centrales,  char* fichier){
 }
 // TODO Charger le reseau depuis un fichier
 void load(char* filename, struct ville* villes, struct centrale* centrales){
-  if(filename == NULL){
-    filename = "network.bck";
-  }
+  if(filename == NULL)
+    filename = "network.brk";
   FILE* fp;
-  fp  = fopen(filename, "r");
-  if(fp == NULL){
-    printf("Error while opening file ! \n");
+  fp = fopen(filename, "r");
+  if(fp==NULL){
+    printf("Error while opening file %s\n", filename);
     return;
   }
-  char line[100]; // should be enough
+  char line[100];
   int steps = 0;
   char* name;
-  int id ;
+  int id;
   int power;
-  int central_num = 0;
-  while(fgets(line, sizeof(line), fp) != NULL){
-    // the \n is very important here
-    // TODO Create a switch using those values
-    // TODO Setup continue when line contains only types
-    // TODO Rewrite this shit
-    if(strcmp(line, "#VILLE\n") == 0){
-      steps = 0;
-      continue;
-    }
-    if(strcmp(line, "#FINVILLE\n") == 0){
-      puts("test 2");
-     steps = 1;   
-    }
-    if(strcmp(line, "#LIGNE\n") == 0){
-      puts("test 1");
-     steps = 2;   
-    }
-    if(strcmp(line, "#FINLIGNE\n") == 0){
-      puts("test 0");
-        steps = 1;
-    };
-    if(strcmp(line, "#FINCENTRALE\n") == 0){
-      puts("test 3");
-      return;
-    }
-    switch(steps){
-      case 0:
-        name = strtok(line, ":");      
-        name = strtok(NULL, ":");
-        sprintf(line, "%d", id);
-        add_ville(id, name);
-        break;
-      case 1:
-        sprintf(line, "%d", id);
-        add_centrale(&centrales,id);
-        central_num++;
-        break;
-      case 2:
-      // TODO Find a way to keep reference to central until passing to the next
-        add_ligne(get_centrale(centrales, central_num), power, get_ville(id));
-        break;
-      default:
-        printf("Case is %d\n", steps);
-        break;
-    }
+  int central_id = 0;
+  while(fgets(line, sizeof(line), fp)!=NULL){
   }
-  fclose(fp);
+  
 }
+// void load(char* filename, struct ville* villes, struct centrale* centrales){
+//   if(filename == NULL){
+//     filename = "network.bck";
+//   }
+//   FILE* fp;
+//   fp  = fopen(filename, "r");
+//   if(fp == NULL){
+//     printf("Error while opening file ! \n");
+//     return;
+//   }
+//   char line[100]; // should be enough
+//   int steps = 0;
+//   char* name;
+//   int id ;
+//   int power;
+//   int central_num = 0;
+//   while(fgets(line, sizeof(line), fp) != NULL){
+//     // the \n is very important here
+//     // TODO Create a switch using those values
+//     // TODO Setup continue when line contains only types
+//     // TODO Rewrite this shit
+//     if(strcmp(line, "#VILLE\n") == 0){
+//       steps = 0;
+//       continue;
+//     }
+//     if(strcmp(line, "#FINVILLE\n") == 0){
+//       puts("test 2");
+//      steps = 1;   
+//     }
+//     if(strcmp(line, "#LIGNE\n") == 0){
+//       puts("test 1");
+//      steps = 2;   
+//     }
+//     if(strcmp(line, "#FINLIGNE\n") == 0){
+//       puts("test 0");
+//         steps = 1;
+//     };
+//     if(strcmp(line, "#FINCENTRALE\n") == 0){
+//       puts("test 3");
+//       return;
+//     }
+//     switch(steps){
+//       case 0:
+//         name = strtok(line, ":");      
+//         name = strtok(NULL, ":");
+//         sprintf(line, "%d", id);
+//         add_ville(id, name);
+//         break;
+//       case 1:
+//         sprintf(line, "%d", id);
+//         add_centrale(&centrales,id);
+//         central_num++;
+//         break;
+//       case 2:
+//       // TODO Find a way to keep reference to central until passing to the next
+//         add_ligne(get_centrale(centrales, central_num), power, get_ville(id));
+//         break;
+//       default:
+//         printf("Case is %d\n", steps);
+//         break;
+//     }
+//   }
+//   fclose(fp);
+// }
 
 int main(void){
   struct ville* v = malloc(sizeof(struct ville));
