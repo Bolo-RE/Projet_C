@@ -38,7 +38,6 @@ struct ville* get_p_ville(){
   return (struct ville*) p_ville;
 }
 
-// Ajouter / Retirer ville
 struct ville* get_ville(int index){
   struct ville* ville = get_p_ville();
   while(ville->suivant != NULL){
@@ -51,7 +50,9 @@ struct ville* get_ville(int index){
 }
 
 
+// Ajouter / Retirer ville
 int add_ville(int code, char* name){
+  // printf("name is %s\n", name);
   struct ville* next = get_p_ville();
   while(next->suivant != NULL){
     next = next->suivant;
@@ -166,9 +167,7 @@ int add_ligne(struct centrale* centrale, int puissance, struct ville* ville){
 int rm_ligne(struct centrale* centrale, int id){
   struct ligne* lignes = centrale->lignes;
   while(lignes->suivant != NULL){
-    // TODO check out how this should be done
     if (lignes->suivant->id == id){
-      // Need debug
       if (lignes->suivant->suivant == NULL){
         lignes->suivant = NULL;
       }else{
@@ -208,17 +207,14 @@ void power_display(struct centrale* centrales, int code_ville){
   printf("Au total, la ville %d recoit %d energie", code_ville, p_total);
 }
 
-// TODO Enregistrer le reseau
 void save(struct centrale* centrales,  char* fichier){
-  // TODO Check if this network has already been saved ;if true then overwrite else create new file
-  // fileexists(fichier); -> if .bck file exists; 
   // TODO For the moment the last saved file is wiped and we write everything back ; maybe thing of append?
-  struct ville* villes = get_p_ville();
-  if(fichier == NULL){
-    fichier = "network.bck";
+  FILE* fp  = fopen(fichier, "w");
+  if(!fp){
+    fp = fopen("network.bck", "w");
   }
-  // TODO Check if centrale, ville and lignes are at first position (get the addr of the first link)
-  FILE* fp;
+  struct ville* villes = get_p_ville();
+  // TODO Better error handling
   if(fp == NULL){
     printf("Error while trying to create file !\n");
     return;
@@ -235,7 +231,6 @@ void save(struct centrale* centrales,  char* fichier){
   }
   fputs("#FINVILLE\n#CENTRALE\n", fp);
   while(centrales != NULL){
-    // printf("central id %d\n", centrales->id);
     fprintf(fp, "%d\n", centrales->id);
     printf("lignes : %p\n", centrales->lignes);
     if(centrales->lignes == NULL){
@@ -256,10 +251,58 @@ void save(struct centrale* centrales,  char* fichier){
   fputs("#FINCENTRALE",fp);
   fclose(fp);
 }
+
+// The centrale argument is not used, only here for homogenity
+int load_ville(char* data, struct centrale* padding){
+  int id;
+  char* idv  = strtok(data, ":");
+  char* name = strtok(NULL, ":");
+  if(name == NULL){
+    // printf("%s\n", idv);
+    return -1;
+  }else{
+    // printf("created struct ville with values %s and %s\n", idv, name);
+    id = strtol(idv, (char**)NULL,  10);
+    // printf("created struct ville with values %d and %s \n", id, name);
+    add_ville(id, strdup(name));
+  }
+  return 0;  
+}
+
+int load_centrale(char* data, struct centrale* chain){
+  int id;
+  if(strlen(data)>2){
+    // printf("str %s\n", data);
+    return -1;
+  }
+  id = strtol(data, (char**)NULL, 10);
+  add_centrale(&chain, id);
+  return 0;  
+}
+
+// TODO Add the centrale number; function is not working ATM
+int load_ligne(char* data, struct centrale* centrale){
+  int id;
+  int power;
+  char* idv  = strtok(data, ":");
+  char* powerv = strtok(NULL, ":");
+  if(powerv == NULL){
+    // printf("%s\n", idv);
+    return -1;
+  }else{
+    // printf("created struct ville with values %s and %s\n", idv, name);
+    id = strtol(idv, (char**)NULL,  10);
+    power = strtol(powerv, (char**)NULL, 10);
+    // printf("created struct ville with values %d and %s \n", id, name);
+    add_ligne(centrale, power, get_ville(id));
+  }
+  return 0;  
+}
+
 // TODO Charger le reseau depuis un fichier
 void load(char* filename, struct ville* villes, struct centrale* centrales){
   if(filename == NULL)
-    filename = "network.brk";
+    filename = "network.bck";
   FILE* fp;
   fp = fopen(filename, "r");
   if(fp==NULL){
@@ -268,103 +311,55 @@ void load(char* filename, struct ville* villes, struct centrale* centrales){
   }
   char line[100];
   int steps = 0;
+  int (*loaders[3])() = {load_ville, load_centrale, load_ligne};
   char* name;
   int id;
   int power;
   int central_id = 0;
   while(fgets(line, sizeof(line), fp)!=NULL){
+    if(strcmp(line, "#FINVILLE\n") == 0){
+      steps = 1;
+    }
+    if(strcmp(line, "#LIGNE\n") == 0){
+      steps = 2;
+    }
+    if(strcmp(line, "#FINLIGNE\n") == 0){
+      steps = 1;
+    }
+
+    if(strcmp(line, "#FINCENTRALE\n") == 0){
+      return;
+    }
+    // TODO Error handling
+    loaders[steps](line, get_centrale(centrales, central_id));
   }
-  
+  fclose(fp);
 }
-// void load(char* filename, struct ville* villes, struct centrale* centrales){
-//   if(filename == NULL){
-//     filename = "network.bck";
-//   }
-//   FILE* fp;
-//   fp  = fopen(filename, "r");
-//   if(fp == NULL){
-//     printf("Error while opening file ! \n");
-//     return;
-//   }
-//   char line[100]; // should be enough
-//   int steps = 0;
-//   char* name;
-//   int id ;
-//   int power;
-//   int central_num = 0;
-//   while(fgets(line, sizeof(line), fp) != NULL){
-//     // the \n is very important here
-//     // TODO Create a switch using those values
-//     // TODO Setup continue when line contains only types
-//     // TODO Rewrite this shit
-//     if(strcmp(line, "#VILLE\n") == 0){
-//       steps = 0;
-//       continue;
-//     }
-//     if(strcmp(line, "#FINVILLE\n") == 0){
-//       puts("test 2");
-//      steps = 1;   
-//     }
-//     if(strcmp(line, "#LIGNE\n") == 0){
-//       puts("test 1");
-//      steps = 2;   
-//     }
-//     if(strcmp(line, "#FINLIGNE\n") == 0){
-//       puts("test 0");
-//         steps = 1;
-//     };
-//     if(strcmp(line, "#FINCENTRALE\n") == 0){
-//       puts("test 3");
-//       return;
-//     }
-//     switch(steps){
-//       case 0:
-//         name = strtok(line, ":");      
-//         name = strtok(NULL, ":");
-//         sprintf(line, "%d", id);
-//         add_ville(id, name);
-//         break;
-//       case 1:
-//         sprintf(line, "%d", id);
-//         add_centrale(&centrales,id);
-//         central_num++;
-//         break;
-//       case 2:
-//       // TODO Find a way to keep reference to central until passing to the next
-//         add_ligne(get_centrale(centrales, central_num), power, get_ville(id));
-//         break;
-//       default:
-//         printf("Case is %d\n", steps);
-//         break;
-//     }
-//   }
-//   fclose(fp);
-// }
 
 int main(void){
   struct ville* v = malloc(sizeof(struct ville));
   // TODO What if this address change ? Maybe setup check in get_addr
   set_p_ville((unsigned long)v);
   struct centrale* c = malloc(sizeof(struct centrale));
-  add_ville(1, "Ville");
-  add_ville(2, "Ville");
-  add_ville(3, "test3");
-  add_ville(5, "test2");
-  add_centrale(&c, 1);
-  add_centrale(&c, 2);
-  add_centrale(&c, 3);
-  add_centrale(&c, 4);
-  add_ligne(get_centrale(c, 1), 100, get_ville(1));
-  add_ligne(get_centrale(c, 1), 100, get_ville(2));
+  // add_ville(1, "Ville");
+  // add_ville(2, "Ville");
+  // add_ville(3, "test3");
+  // add_ville(5, "test2");
+  // add_centrale(&c, 1);
   // add_centrale(&c, 2);
-  add_ligne(get_centrale(c,2), 100, get_ville(2));
+  // add_centrale(&c, 3);
+  // add_centrale(&c, 4);
+  // add_ligne(get_centrale(c, 1), 100, get_ville(1));
+  // add_ligne(get_centrale(c, 1), 100, get_ville(2));
+  // // add_centrale(&c, 2);
+  // add_ligne(get_centrale(c,2), 100, get_ville(2));
   // save(get_centrale(c,1),NULL);
   load(NULL, v, c);
-  rm_ville(5);
+  // rm_ville(5);
   struct ville* buf = get_p_ville();
-  // while(buf != NULL){
-  //   printf("value is %s\n", buf->name);
-  //   buf = buf->suivant;
-  // }
+  while(buf != NULL){
+    printf("id is %d and value is %s\n", buf->code, buf->name);
+    buf = buf->suivant;
+  }
 //   // TODO Free
 }
