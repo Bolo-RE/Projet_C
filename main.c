@@ -76,6 +76,7 @@ int add_ville(int code, char* name){
 int rm_ville(int code){
   struct ville* p = get_p_ville();
   struct ville** ville = &p;
+  // TODO Free to setup
   while((*ville)->suivant != NULL){
     if ((*ville)->suivant->code == code){
       if ((*ville)->suivant->suivant == NULL){
@@ -93,6 +94,7 @@ int rm_ville(int code){
 }
 
 struct centrale* get_centrale(struct centrale* centrales, int id){
+  // TODO If the centrales is empty block; should return the block
   while(centrales->prev != NULL){
     centrales = centrales->prev;
   }
@@ -210,19 +212,12 @@ void power_display(struct centrale* centrales, int code_ville){
 void save(struct centrale* centrales,  char* fichier){
   // TODO For the moment the last saved file is wiped and we write everything back ; maybe thing of append?
   FILE* fp  = fopen(fichier, "w");
-  if(!fp){
+  if(fp == NULL){
+    // TODO Open networkN.bck if file network(N-1).bck exist
     fp = fopen("network.bck", "w");
   }
   struct ville* villes = get_p_ville();
-  // TODO Better error handling
-  if(fp == NULL){
-    printf("Error while trying to create file !\n");
-    return;
-  }
-  fp = fopen(fichier, "w");
-  if (fp == NULL){
-    printf("Error while trying to open file");
-  }
+  printf("test\n");
   fputs("#VILLES\n", fp);
   
   while(villes != NULL){
@@ -271,23 +266,23 @@ int load_ville(char* data, struct centrale* padding){
 
 int load_centrale(char* data, struct centrale* chain){
   int id;
+  puts("test2");
   if(strlen(data)>2){
     // printf("str %s\n", data);
     return -1;
   }
   id = strtol(data, (char**)NULL, 10);
+  printf("%d\n",id);
   add_centrale(&chain, id);
   return 0;  
 }
 
-// TODO Add the centrale number; function is not working ATM
 int load_ligne(char* data, struct centrale* centrale){
   int id;
   int power;
   char* idv  = strtok(data, ":");
   char* powerv = strtok(NULL, ":");
   if(powerv == NULL){
-    // printf("%s\n", idv);
     return -1;
   }else{
     // printf("created struct ville with values %s and %s\n", idv, name);
@@ -319,12 +314,16 @@ void load(char* filename, struct ville* villes, struct centrale* centrales){
   while(fgets(line, sizeof(line), fp)!=NULL){
     if(strcmp(line, "#FINVILLE\n") == 0){
       steps = 1;
+      puts("centrale");
     }
     if(strcmp(line, "#LIGNE\n") == 0){
       steps = 2;
+      puts("lignes");
     }
     if(strcmp(line, "#FINLIGNE\n") == 0){
       steps = 1;
+      central_id++;
+      puts("centrale");
     }
 
     if(strcmp(line, "#FINCENTRALE\n") == 0){
@@ -351,11 +350,11 @@ int main(void){
   // add_centrale(&c, 4);
   // add_ligne(get_centrale(c, 1), 100, get_ville(1));
   // add_ligne(get_centrale(c, 1), 100, get_ville(2));
-  // // add_centrale(&c, 2);
+  // add_centrale(&c, 2);
   // add_ligne(get_centrale(c,2), 100, get_ville(2));
-  // save(get_centrale(c,1),NULL);
   load(NULL, v, c);
   // rm_ville(5);
+  // save(get_centrale(c,1),NULL);
   struct ville* buf = get_p_ville();
   while(buf != NULL){
     printf("id is %d and value is %s\n", buf->code, buf->name);

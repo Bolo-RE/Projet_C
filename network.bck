@@ -2,7 +2,6 @@
 1:Ville
 2:Ville
 3:test3
-5:test2
 #FINVILLE
 #CENTRALE
 1
@@ -11,8 +10,7 @@
 2:100
 #FINLIGNE
 2
-#LIGNE
-2:100
-#FINLIGNE
 3
+4
+2
 #FINCENTRALE
