@@ -2,6 +2,7 @@
 //Projet electricite GIF 2022 
 //Wed Oct 19 02:17:08 PM CEST 2022
 
+// TODO Throw error when trying to load structures with the same ID
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -79,6 +80,10 @@ int rm_ville(int code){
   // TODO Free to setup
   while((*ville)->suivant != NULL){
     if ((*ville)->suivant->code == code){
+      if((*ville) == get_p_ville()){
+        puts("removing the first node; changing the value of p_ville");
+        set_p_ville((unsigned long)(*ville)->suivant);
+      }
       if ((*ville)->suivant->suivant == NULL){
         (*ville)->suivant = NULL;
       }else{
@@ -94,17 +99,23 @@ int rm_ville(int code){
 }
 
 struct centrale* get_centrale(struct centrale* centrales, int id){
-  // TODO If the centrales is empty block; should return the block
+  // TODO Check if ID is unique, if not : inform user and get new value
+  struct centrale* res = NULL;
   while(centrales->prev != NULL){
     centrales = centrales->prev;
   }
   while(centrales->suivant != NULL){
     if(centrales->id == id){
-      return centrales;
+      if (res == NULL){
+        res = centrales;        
+      }
+      else{
+        printf("Found double value ! ID should be unique, else undefinied behavoir can happen. You have been warned.\n");
+      }
     }
     centrales = centrales->suivant;
   }
-  return NULL;
+  return res;
 }
 // Ajouter / Retirer centrale
 int add_centrale(struct centrale** centrale, int id){
@@ -266,7 +277,7 @@ int load_ville(char* data, struct centrale* padding){
 
 int load_centrale(char* data, struct centrale* chain){
   int id;
-  puts("test2");
+  // Check if line only contains what we need -> an int
   if(strlen(data)>2){
     // printf("str %s\n", data);
     return -1;
@@ -288,7 +299,7 @@ int load_ligne(char* data, struct centrale* centrale){
     // printf("created struct ville with values %s and %s\n", idv, name);
     id = strtol(idv, (char**)NULL,  10);
     power = strtol(powerv, (char**)NULL, 10);
-    // printf("created struct ville with values %d and %s \n", id, name);
+    printf("created struct ligne with values %d and %d in centrale %d\n", id, power, centrale->id);
     add_ligne(centrale, power, get_ville(id));
   }
   return 0;  
@@ -314,23 +325,24 @@ void load(char* filename, struct ville* villes, struct centrale* centrales){
   while(fgets(line, sizeof(line), fp)!=NULL){
     if(strcmp(line, "#FINVILLE\n") == 0){
       steps = 1;
-      puts("centrale");
     }
     if(strcmp(line, "#LIGNE\n") == 0){
       steps = 2;
-      puts("lignes");
     }
     if(strcmp(line, "#FINLIGNE\n") == 0){
       steps = 1;
       central_id++;
-      puts("centrale");
     }
 
     if(strcmp(line, "#FINCENTRALE\n") == 0){
       return;
     }
     // TODO Error handling
-    loaders[steps](line, get_centrale(centrales, central_id));
+    if(get_centrale(centrales, central_id)== NULL){
+      loaders[steps](line, centrales);
+    }else{
+      loaders[steps](line, get_centrale(centrales, central_id));
+    }
   }
   fclose(fp);
 }
