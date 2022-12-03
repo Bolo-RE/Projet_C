@@ -5,10 +5,9 @@
 #include <time.h>
 #define NOCOLOR -1
 #define LIGNES 27
-#define BORDER 1
 #define COLONNES 104
 #define OFFSET 2
-#define PADDING "\033[22;34m|"
+#define BORDER "\033[22;34m|"
 #define XCENTRALE 4
 #define XVILLE 80
 struct func {
@@ -24,32 +23,36 @@ struct screen {
   int input;  // If 1 show input else no
 };
 
-// TODO Border management
 // TODO Fix backspace formatting issue
 // TODO Input handling (best result function)
-// TODO Options read from backup file
+// TODO Options read from backup file -> hard to do + not that useful -> garbage (can be)
+// setup on running though
 // TODO Fix keymap
-// TODO View everything
-// TODO View one particular node of network
 // TODO Error code handling
-// TODO Log clearing at starting
 // TODO Save screen state to be redrawn after printing message
 static int baroffset = 0;
 static struct ville* villes; 
 static struct centrale* centrales;
 static struct screen scr;
-char* getinput(void);
+char* getinput(char* msg, int type);
 int drawtoolbar(int n);
 int incrtoolbar(void);
 int dincrtoolbar(void);
 int getinfo(void);
 int getpower(void);
 int setpower(void);
-int create(void);
-int rm(void);
+int createVille(void);
+int createCentrale(void);
+int createLigne(void);
+int rmVille(void);
+int rmCentrale(void);
+int rmLigne(void);
 int showHelp(void);
 int toggleToolbar(void);
-int list(void);
+int listVille(void);
+int listCentrale(void);
+int saveFile(void);
+int loadFile(void);
 void drawnetwork(struct centrale* centrales);
 void init(void);
 void draw(void);
@@ -80,6 +83,29 @@ int dincrtoolbar(void){
 }
 
 
+// Find out how to get integer inputs
+int createVille(void){
+  char* name = getinput("Nom de la ville :", 0);
+  int id = getinput("Id :", 1);
+  add_ville(id, name);
+  return 0;
+}
+
+int createCentrale(void){
+  int id = getinput("Id :", 1);
+  add_centrale(&centrales, id);
+  return 0;
+}
+
+int createLigne(void){
+  int cid = getinput("Id de la centrale :", 1);
+  int vid = getinput("Id de la ville : ", 1);
+  int power = getinput("Puissance :", 1);
+  add_ligne(get_centrale(centrales, cid), power, get_ville(vid));
+  return 0;
+}
+
+
 // TODO Setup resize ?
 int drawtoolbar(int n){
   locate(0,scr.toolbar);
@@ -88,6 +114,7 @@ int drawtoolbar(int n){
   // get the number of functions global
   int len = sizeof(funcs) / sizeof(struct func);
   char toolbar[COLONNES];
+  // Change the pointer to functions for the 0-9 keys
   while(1){
     int j = i % len;
     if(funcs[j-1].name == NULL)
@@ -125,12 +152,13 @@ void showWarning(char* message){
   printf("%s", line);
   getch();
   draw();
-  // clear on return key
 }
 
-
-char* getinput(void){
-  locate(0,27);
+// TODO Fix under Windows
+char* getinput(char* msg, int type){
+  locate(0,LIGNES-1);
+  puts(msg);
+  locate(0,LIGNES);
   int x = 0;
   // Should be enough
   // TODO Fix the fact that keystrokes are evaluated one loop after
@@ -156,7 +184,7 @@ char* getinput(void){
       else if ('A' <= k && k <= 'z'){
         if(x >= 100){
           showWarning("Ooops... Seems command you're typing is a bit too long");
-
+          // TODO Do something about it
         }
         strcat(input, &k);
         locate(x, 27);
@@ -167,7 +195,12 @@ char* getinput(void){
 }
 
 void showhelp(){
-  showWarning("Please refer to the manual at address :\n https://github.com/Bolo-RE/Projet_C/tree/dev-linux");
+  showWarning("Please refer to the manual at address : https://github.com/Bolo-RE/Projet_C/tree/dev-linux");
+}
+
+void drawpanel(char* data[]){
+  // Check if all the datas can be displayed if not inform user 
+  // Draw everything on the right of the screen
 }
 
 //TODO Moving around could be implemented but not mandatory for the moment
@@ -175,7 +208,8 @@ void drawnetwork(struct centrale* centrales){
   locate(XCENTRALE,1);
   int ycentrale = 1;
   int yville = 1;
-  //TODO Take in account that may be needed at the end of file
+  //TODO Take in account that may be needed at the end of file -> just inform user if this is the case
+  //If time try to implement something looking like moving around
   while(centrales != NULL && ycentrale <= LIGNES && yville <= LIGNES){
     printf("C%d", centrales->id);
     struct ligne* lignes = centrales->lignes;
@@ -226,21 +260,12 @@ void drawnetwork(struct centrale* centrales){
   }
 }
 
-// void drawnode(struct centrale* centrales){
-//   // Blue is for centrale; 
-//   // White is for the town;
-//   // Trying to use the most different colors for the link
-// }
-
 void init(void){
   cls();
   int i = 0;
-  // drawtoolbar(1);
-  if(BORDER){
     for(int i =0; i < LIGNES;i++){
-      printXY(0,i, PADDING);
-      printXY(COLONNES,i, PADDING);
-    }
+      printXY(0,i, BORDER);
+      printXY(COLONNES,i, BORDER);
   }
 }
 
@@ -283,7 +308,7 @@ void test(struct centrale* centrales, struct ville* villes){
   add_ligne(get_centrale(centrales, 2), 120, get_ville(3));
 }
 
-int main(void){
+int main(int argc, char* argv[]){
   // DO not remove, else random always return the same number
   srand(time(NULL));
   // Set the default values
@@ -294,8 +319,15 @@ int main(void){
   centrales = malloc(sizeof(struct centrale));
   villes = malloc(sizeof(struct ville));
   // test(centrales, villes);
-  showWarning("fljdaslfjdasljflsdajflkjsadlfj");
-  // logmsg("--------------------------------------------------------------------------------");
+  if(argc == 2){
+    if(strcmp(argv[1], "-h") == 0){
+      //TODO Print help
+    }
+    // TODO Think about other cases possible
+    else{
+      load(argv[1], villes, centrales);
+    }
+  }
   hidecursor();
   saveDefaultColor();
   // init();
@@ -313,6 +345,6 @@ int main(void){
   //     }
   //     // Pray pointer is pointing to some function
   //     f.fun();
-  //   }
-  // }
+//   }
+//
 }
