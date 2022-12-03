@@ -17,8 +17,14 @@ struct func {
   char mapped;
 };
 
+struct screen {
+  int toolbar;  // If non 0 draw the toolbar at given offset
+  int infobar;  // If non 0 call the infobar
+  int display; // If non 0 show the view for given centrale ID
+  int input;  // If 1 show input else no
+};
+
 // TODO Border management
-// TODO Setup toolbar drawing
 // TODO Fix backspace formatting issue
 // TODO Input handling (best result function)
 // TODO Options read from backup file
@@ -27,22 +33,39 @@ struct func {
 // TODO View one particular node of network
 // TODO Error code handling
 // TODO Log clearing at starting
-int baroffset = 0;
-void draw(void);
-int x,y;
+// TODO Save screen state to be redrawn after printing message
+static int baroffset = 0;
+static struct ville* villes; 
+static struct centrale* centrales;
+static struct screen scr;
 char* getinput(void);
 int drawtoolbar(int n);
 int incrtoolbar(void);
 int dincrtoolbar(void);
-void permtoolbar(void);
-// void drawnetwork(struct centrale*);
-int test1(void);
-int test2(void);
-int test3(void);
+int getinfo(void);
+int getpower(void);
+int setpower(void);
+int create(void);
+int rm(void);
+int showHelp(void);
+int toggleToolbar(void);
+int list(void);
+void drawnetwork(struct centrale* centrales);
+void init(void);
+void draw(void);
+struct func getfnc(char map);
 
-struct func funcs[] = {{"function1",incrtoolbar,'a'}, {"function2",dincrtoolbar, 'b'}, {"test3", test3, 'c'}};
-char* data[] = {"test1", "test2", "test3"};
-#define SFUNC sizeof(funcs) / sizeof(struct func)
+
+// Toolbar is using the numbers to select the function needed
+// User can also define keybindings to some functions
+// Color of lines are defined by the power they contain
+// 3 levels : . x X for lines ; with != colors
+// TODO Complete this
+struct func funcs[] = {
+  {"function1",incrtoolbar,'a'}, 
+  {"function2",dincrtoolbar, 'b'}, 
+  {"test3", NULL, 'c'}  
+};
 
 
 int incrtoolbar(void){
@@ -56,41 +79,19 @@ int dincrtoolbar(void){
   return 0;
 }
 
-int test1(void){
-  printf("Test 1\n");
-  return 0;
-}
 
-int test2(void){
-  printf("Test 2");
-  return 0;
-}
-
-int test3(void){
-  printf("Test 3\n");
-  return 0;
-}
-
-void clearline(int x, int y){
-  locate(x,y);
-  char clear[COLONNES];
-  memset(clear, '-', COLONNES * sizeof(char));
-  setString(clear);
-}
-
+// TODO Setup resize ?
 int drawtoolbar(int n){
-  // TODO Choose toolbar position
-  locate(0,0);
+  locate(0,scr.toolbar);
   int i = n;
   int size = COLONNES;
   // get the number of functions global
   int len = sizeof(funcs) / sizeof(struct func);
   char toolbar[COLONNES];
-  // TODO Setup all checks
   while(1){
     int j = i % len;
-    // Adding the [space]|[space] 
-    // TODO Handle the sigv -> verify params exists
+    if(funcs[j-1].name == NULL)
+      continue;
     size = size - strlen(funcs[j-1].name) - 3;
     if (size < 0){
       break;
@@ -98,7 +99,6 @@ int drawtoolbar(int n){
     sprintf(toolbar, "%s | %s",toolbar, funcs[j].name);
     i++;
   }
-  // clearline(0,0);
   printf("%s | ",toolbar);
   return 0;
 }
@@ -112,10 +112,19 @@ char* getfuncname(char* part){
 }
 
 void showWarning(char* message){
-  // Show message on the middle of the screen; need to save prev state show the message and 
-  locate(LIGNES/2, COLONNES/2);
-  anykey(message);
   cls();
+  char line[strlen(message)-1];
+  memset(line, '-', sizeof(char)*strlen(message));
+  int x = (COLONNES-strlen(message))/2;
+  int y = LIGNES/2;
+  locate(x, y++);
+  printf("%s", line);
+  locate(x, y++);
+  printf("%s", message);
+  locate(x, y);
+  printf("%s", line);
+  getch();
+  draw();
   // clear on return key
 }
 
@@ -147,48 +156,74 @@ char* getinput(void){
       else if ('A' <= k && k <= 'z'){
         if(x >= 100){
           showWarning("Ooops... Seems command you're typing is a bit too long");
+
         }
         strcat(input, &k);
         locate(x, 27);
         setChar(k);
         x++;
       }
-      // else{
-       // locate(0,0);
-        // printf("%d\n", k);
-        // locate(27,x);
-      // }
     }
-  // }
 }
 
+void showhelp(){
+  showWarning("Please refer to the manual at address :\n https://github.com/Bolo-RE/Projet_C/tree/dev-linux");
+}
 
 //TODO Moving around could be implemented but not mandatory for the moment
-//TODO Choose the id to draw 
 void drawnetwork(struct centrale* centrales){
   locate(XCENTRALE,1);
   int ycentrale = 1;
   int yville = 1;
   //TODO Take in account that may be needed at the end of file
   while(centrales != NULL && ycentrale <= LIGNES && yville <= LIGNES){
-    setChar('C');
+    printf("C%d", centrales->id);
     struct ligne* lignes = centrales->lignes;
     while(lignes != NULL){
       if(lignes->ville->y == -1){
         lignes->ville->y = yville;
         locate(XVILLE, yville);
-        setChar(lignes->ville->name[0]);
+        printf("%c%c",lignes->ville->name[0], lignes->ville->name[strlen(lignes->ville->name)-1]);
         yville++;
+      }
+      // TODO Draw line
+      int xline = XCENTRALE+2;
+      int yline = yville < ycentrale ? yville : ycentrale;
+      int ymax = yville > ycentrale ? yville : ycentrale;
+      // If on the same line; just have to draw straight line 
+      // TODO Find the right number of cells to fill
+      if(lignes->ville->y == ycentrale){
+        while(xline <= XVILLE-1){
+          locate(xline, ycentrale);
+          setChar('.');
+          xline++;
+        }
+      }
+      else{
+        int offset = rand() % COLONNES;
+        while(xline <= offset){
+          locate(xline, yville);
+          colorPrint(RED, WHITE, ".");
+          xline++;
+        }
+        while(yline <= ymax){
+          locate(xline, yline);
+          colorPrint(RED, WHITE, ".");
+          yline++;
+        }
+        while(xline <= XVILLE-1){
+          locate(xline, yline);
+          colorPrint(RED, WHITE, ".");
+          xline++;
+        }
       }
       lignes = lignes->suivant;
     }
     centrales = centrales->suivant;
-    locate(XCENTRALE,ycentrale);
     ycentrale++;
+
+    locate(XCENTRALE,ycentrale);
   }
-  // Blue is for centrale; 
-  // White is for the town;
-  // Trying to use the most different colors for the link
 }
 
 // void drawnode(struct centrale* centrales){
@@ -210,8 +245,9 @@ void init(void){
 }
 
 void draw(void){
-  // init();
+  init();
   drawtoolbar(1);
+  drawnetwork(centrales);
 }
 
 struct func getfnc(char map){
@@ -231,11 +267,7 @@ struct func getfnc(char map){
   return empty;
 }
 
-int main(void){
-
-  logmsg("---------------------------------------------");
-  struct centrale* centrales = malloc(sizeof(struct centrale));
-  struct ville* villes = malloc(sizeof(struct ville));
+void test(struct centrale* centrales, struct ville* villes){  
   set_p_ville((unsigned long)villes);
   add_ville(1, "test");
   add_ville(2, "test");
@@ -248,12 +280,27 @@ int main(void){
   add_ligne(get_centrale(centrales, 1), 120, get_ville(1));
   add_ligne(get_centrale(centrales, 2), 120, get_ville(4));
   add_ligne(get_centrale(centrales, 3), 120, get_ville(3));
-  // add_ligne(get_centrale(centrales, 1), 120, get_ville(2));
+  add_ligne(get_centrale(centrales, 2), 120, get_ville(3));
+}
+
+int main(void){
+  // DO not remove, else random always return the same number
+  srand(time(NULL));
+  // Set the default values
+  scr.display = 1;
+  scr.infobar = 0;
+  scr.input = 0;
+  scr.toolbar = 1;
+  centrales = malloc(sizeof(struct centrale));
+  villes = malloc(sizeof(struct ville));
+  // test(centrales, villes);
+  showWarning("fljdaslfjdasljflsdajflkjsadlfj");
+  // logmsg("--------------------------------------------------------------------------------");
   hidecursor();
   saveDefaultColor();
   // init();
-  cls();
-  drawnetwork(centrales);
+  // cls();
+  // draw();
   // draw();
   // while(1){
   //   if(kbhit()){
