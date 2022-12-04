@@ -3,6 +3,8 @@
 //Wed Oct 19 02:17:08 PM CEST 2022
 
 // TODO Replace all the printfs by log function
+// TODO Setup save centrales pointer to be passed to the other functions
+// TODO Remove the ID control by user, replace it by name for centrale (way better)
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -33,11 +35,11 @@ struct centrale {
 static unsigned long p_ville;
 
 int logmsg(char* message){
-  FILE* fp = fopen(LOGFILE, "a");
+  FILE* fp = fopen(LOGFILE, "w");
   if(fp == NULL){
     return -1;
   }
-  fputs(message, fp);
+  // TODO Find out in which situation this can SEGV and how to prevent that
   return 0;
 }
 
@@ -185,7 +187,7 @@ int rm_centrale(struct centrale** centrale, int id){
 // Ajouter / Retirer ligne
 int add_ligne(struct centrale* centrale, int puissance, struct ville* ville){
   if (ville == NULL){
-    logmsg("Issue with ville argument : NULL value\n");
+    printf("Issue with ville argument : NULL value\n");
     return -1;
   }
   struct ligne* lignes = centrale->lignes;
@@ -234,6 +236,7 @@ void change_power(struct centrale* centrale, int puissance){
 void power_display(struct centrale* centrales, int code_ville){
   int p_total = 0;
   while(centrales->suivant != NULL){
+    
     struct ligne* lignes = centrales->lignes;
     while(lignes->suivant != NULL){
       if(lignes->ville->code == code_ville){
@@ -249,7 +252,7 @@ void power_display(struct centrale* centrales, int code_ville){
 }
 
 // TODO For the moment the last saved file is wiped and we write everything back ; maybe thing of append?
-int save(struct centrale* centrales,  char* fichier){
+void save(struct centrale* centrales,  char* fichier){
   FILE* fp  = fopen(fichier, "w");
   char counter = '0';
   char* base = "network.bck";
@@ -259,6 +262,7 @@ int save(struct centrale* centrales,  char* fichier){
     counter++;
   }
   struct ville* villes = get_p_ville();
+  printf("test\n");
   fputs("#VILLES\n", fp);
   
   while(villes != NULL){
@@ -286,7 +290,6 @@ int save(struct centrale* centrales,  char* fichier){
   }
   fputs("#FINCENTRALE",fp);
   fclose(fp);
-  return 0;
 }
 
 // The centrale argument is not used, only here for homogenity
@@ -327,23 +330,24 @@ int load_ligne(char* data, struct centrale* centrale){
   if(powerv == NULL){
     return -1;
   }else{
+    // printf("created struct ville with values %s and %s\n", idv, name);
     id = strtol(idv, (char**)NULL,  10);
     power = strtol(powerv, (char**)NULL, 10);
-    // printf("created struct ligne with values %d and %d in centrale %d\n", id, power, centrale->id);
+    printf("created struct ligne with values %d and %d in centrale %d\n", id, power, centrale->id);
     add_ligne(centrale, power, get_ville(id));
   }
   return 0;  
 }
 
-// Charger le reseau depuis un fichier
-int load(char* filename, struct ville* villes, struct centrale* centrales){
+// TODO Charger le reseau depuis un fichier
+void load(char* filename, struct ville* villes, struct centrale* centrales){
   if(filename == NULL)
     filename = "network.bck";
   FILE* fp;
   fp = fopen(filename, "r");
   if(fp==NULL){
-    // printf("Error while opening file %s\n", filename);
-    return -1;
+    printf("Error while opening file %s\n", filename);
+    return;
   }
   char line[100];
   int steps = 0;
@@ -365,9 +369,9 @@ int load(char* filename, struct ville* villes, struct centrale* centrales){
     }
 
     if(strcmp(line, "#FINCENTRALE\n") == 0){
-      fclose(fp);
-      return 0;
+      return;
     }
+    // TODO Error handling
     if(get_centrale(centrales, central_id)== NULL){
       loaders[steps](line, centrales);
     }else{
@@ -375,6 +379,5 @@ int load(char* filename, struct ville* villes, struct centrale* centrales){
     }
   }
   fclose(fp);
-  return 0;
 }
 

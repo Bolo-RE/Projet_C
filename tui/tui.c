@@ -10,6 +10,8 @@
 #define BORDER "\033[22;34m|"
 #define XCENTRALE 4
 #define XVILLE 80
+#define XSIDEBAR 81
+#define OINDEX 17
 struct func {
   char* name;
   int (*fun)();
@@ -18,7 +20,7 @@ struct func {
 
 struct screen {
   int toolbar;  // If non 0 draw the toolbar at given offset
-  int infobar;  // If non 0 call the infobar
+  int infobar;  // If non 0 draw the infobar -> how to keep the information ?
   int display; // If non 0 show the view for given centrale ID
   int input;  // If 1 show input else no
 };
@@ -30,15 +32,17 @@ struct screen {
 // TODO Fix keymap
 // TODO Error code handling
 // TODO Save screen state to be redrawn after printing message
+// TODO Setup resize ?
 static int baroffset = 0;
 static struct ville* villes; 
 static struct centrale* centrales;
 static struct screen scr;
-char* getinput(char* msg, int type);
+void* getinput(char* msg, int type);
 int drawtoolbar(int n);
 int incrtoolbar(void);
 int dincrtoolbar(void);
-int getinfo(void);
+int getinfoVille(void);
+int getinfoCentrale(void);
 int getpower(void);
 int setpower(void);
 int createVille(void);
@@ -55,19 +59,43 @@ int saveFile(void);
 int loadFile(void);
 void drawnetwork(struct centrale* centrales);
 void init(void);
-void draw(void);
+int draw(void);
 struct func getfnc(char map);
 
 
 // Toolbar is using the numbers to select the function needed
 // User can also define keybindings to some functions
-// Color of lines are defined by the power they contain
-// 3 levels : . x X for lines ; with != colors
-// TODO Complete this
 struct func funcs[] = {
-  {"function1",incrtoolbar,'a'}, 
-  {"function2",dincrtoolbar, 'b'}, 
-  {"test3", NULL, 'c'}  
+  {"HIDE",incrtoolbar,'a'}, 
+  {"HIDE",dincrtoolbar, 'b'}, 
+  {"infoVille", getinfoVille, 'c'},
+  {"infoCentrale", getinfoCentrale, 'd'},
+  {"getPower", getpower, 'e'},
+  {"setPower", setpower, 'f'},
+  {"createVille", createVille, 'g'},
+  {"createCentrale", createCentrale, 'h'},
+  {"createLigne", createLigne, 'i'},
+  {"rmVille", rmVille, 'j'},
+  {"rmCentrale", rmCentrale, 'k'},
+  {"rmLigne", rmLigne, 'l'},
+  {"help", showHelp, 'm'},
+  {"toggleToolbar", toggleToolbar, 'n'},
+  {"listVille", listVille, 'o'},
+  {"listCentrale", listCentrale, 'p'},
+  {"save", saveFile, 'q'},
+  {"load", loadFile, 'r'},
+  {"refresh", draw, 's'},
+  {"HIDE", NULL, '1'},
+  {"HIDE", NULL, '2'},
+  {"HIDE", NULL, '3'},
+  {"HIDE", NULL, '4'},
+  {"HIDE", NULL, '5'},
+  {"HIDE", NULL, '6'},
+  {"HIDE", NULL, '7'},
+  {"HIDE", NULL, '8'},
+  {"HIDE", NULL, '9'},
+  {"HIDE", NULL, '0'},
+ 
 };
 
 
@@ -105,26 +133,50 @@ int createLigne(void){
   return 0;
 }
 
+int loadFile(void){
+  char* filename = getinput("Nom du fichier : ", 0);
+  load(filename, villes, centrales);
+  return 0;
+}
 
-// TODO Setup resize ?
+int saveFile(void){
+  char* filename = getinput("Nom du fichier : ", 0);
+  save(centrales, filename);
+  return 0;
+}
+
+int getinfoVille(void){
+  char* name = getinput("Nom de la ville : ", 0);
+  //TODO Link the name with the ID
+  return 0;
+}
+
+int getinfoCentrale(void){
+  int id = getinput("Id centrale : ", 0);
+  //TODO Link the name with the ID
+  return 0;
+}
+// Using the real index value for numbers as should not change. 
+// TODO Get the position for the '1' value and increment after that
 int drawtoolbar(int n){
   locate(0,scr.toolbar);
   int i = n;
+  int k = OINDEX;
   int size = COLONNES;
-  // get the number of functions global
   int len = sizeof(funcs) / sizeof(struct func);
   char toolbar[COLONNES];
-  // Change the pointer to functions for the 0-9 keys
   while(1){
     int j = i % len;
-    if(funcs[j-1].name == NULL)
+    if(funcs[j-1].name == NULL || strcmp(funcs[j-1].name, "HIDE") == 0)
       continue;
     size = size - strlen(funcs[j-1].name) - 3;
     if (size < 0){
       break;
     }
+    funcs[k].fun = funcs[j-1].fun;
     sprintf(toolbar, "%s | %s",toolbar, funcs[j].name);
     i++;
+    k++;
   }
   printf("%s | ",toolbar);
   return 0;
@@ -155,7 +207,8 @@ void showWarning(char* message){
 }
 
 // TODO Fix under Windows
-char* getinput(char* msg, int type){
+// TODO Add the accepted character and check against them in windows
+void* getinput(char* msg, int type){
   locate(0,LIGNES-1);
   puts(msg);
   locate(0,LIGNES);
@@ -197,19 +250,25 @@ char* getinput(char* msg, int type){
 void showhelp(){
   showWarning("Please refer to the manual at address : https://github.com/Bolo-RE/Projet_C/tree/dev-linux");
 }
-
-void drawpanel(char* data[]){
+// Should it be replaced by static value ?
+// Assume that newline chars are placed
+void drawpanel(char data[]){
+  int y = scr.toolbar;
+  int i = 0;
+  // TODO Formatting everything
+  while(y <= LIGNES && data[i] != '\0'){
+    i++;
+  }
   // Check if all the datas can be displayed if not inform user 
   // Draw everything on the right of the screen
 }
 
 //TODO Moving around could be implemented but not mandatory for the moment
+//TODO Take in account that may be needed at the end of file -> just inform user if this is the case
 void drawnetwork(struct centrale* centrales){
   locate(XCENTRALE,1);
   int ycentrale = 1;
   int yville = 1;
-  //TODO Take in account that may be needed at the end of file -> just inform user if this is the case
-  //If time try to implement something looking like moving around
   while(centrales != NULL && ycentrale <= LIGNES && yville <= LIGNES){
     printf("C%d", centrales->id);
     struct ligne* lignes = centrales->lignes;
@@ -220,21 +279,25 @@ void drawnetwork(struct centrale* centrales){
         printf("%c%c",lignes->ville->name[0], lignes->ville->name[strlen(lignes->ville->name)-1]);
         yville++;
       }
-      // TODO Draw line
       int xline = XCENTRALE+2;
       int yline = yville < ycentrale ? yville : ycentrale;
       int ymax = yville > ycentrale ? yville : ycentrale;
-      // If on the same line; just have to draw straight line 
-      // TODO Find the right number of cells to fill
+      // TODO Fix srand going too far
+      // TODO color changing
+      char* thighness = ".";
+      int offset = rand() % COLONNES;
+      if (lignes->puissance > 100)
+        thighness = "o";
+      if(lignes->puissance > 200)
+        thighness = "O";
       if(lignes->ville->y == ycentrale){
         while(xline <= XVILLE-1){
           locate(xline, ycentrale);
-          setChar('.');
+          colorPrint(RED, WHITE, thighness);
           xline++;
         }
       }
       else{
-        int offset = rand() % COLONNES;
         while(xline <= offset){
           locate(xline, yville);
           colorPrint(RED, WHITE, ".");
@@ -242,12 +305,12 @@ void drawnetwork(struct centrale* centrales){
         }
         while(yline <= ymax){
           locate(xline, yline);
-          colorPrint(RED, WHITE, ".");
+          colorPrint(RED, WHITE, thighness);
           yline++;
         }
         while(xline <= XVILLE-1){
           locate(xline, yline);
-          colorPrint(RED, WHITE, ".");
+          colorPrint(RED, WHITE, thighness);
           xline++;
         }
       }
@@ -269,10 +332,18 @@ void init(void){
   }
 }
 
-void draw(void){
+int draw(void){
   init();
-  drawtoolbar(1);
-  drawnetwork(centrales);
+  if(scr.toolbar != -1){
+    drawtoolbar(scr.toolbar);
+  }
+  if(scr.display != -1){    
+    drawnetwork(centrales);
+  }
+  else{
+    drawnetwork(get_centrale(centrales, scr.display));
+  }
+  return 0;
 }
 
 struct func getfnc(char map){
