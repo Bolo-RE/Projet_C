@@ -11,7 +11,10 @@
 #define XCENTRALE 4
 #define XVILLE 80
 #define XSIDEBAR 81
-#define OINDEX 17
+#define OINDEX 19
+// TODO Put that in tmp files in Windows version
+#define DATAPANEL "view.dat"
+
 struct func {
   char* name;
   int (*fun)();
@@ -25,22 +28,26 @@ struct screen {
   int input;  // If 1 show input else no
 };
 
+char alphabet[]={'a' ,'b' ,'c' ,'d' ,'e' ,'f' ,'g' ,'h' ,'i' ,'j' ,'k' ,'l' ,'m' ,'n' ,'o' ,'p' ,'q' ,'r' ,'s' ,'t' ,'u' ,'v' ,'w' ,'x' ,'y' ,'z', 'A' ,'B' ,'C' ,'D' ,'E' ,'F' ,'G' ,'H' ,'I' ,'J' ,'K' ,'L' ,'M' ,'N' ,'O' ,'P' ,'Q' ,'R' ,'S' ,'T' ,'U' ,'V' ,'W' ,'X' ,'Y' ,'Z'};
+char num[]={'0' ,'1' ,'2' ,'3' ,'4' ,'5' ,'6' ,'7' ,'8' ,'9'};
 // TODO Fix backspace formatting issue
+// TODO Create enum containing the error
 // TODO Input handling (best result function)
 // TODO Options read from backup file -> hard to do + not that useful -> garbage (can be)
 // setup on running though
-// TODO Fix keymap
 // TODO Error code handling
-// TODO Save screen state to be redrawn after printing message
 // TODO Setup resize ?
 static int baroffset = 0;
+static int paneloffset = 0;
 static struct ville* villes; 
 static struct centrale* centrales;
 static struct screen scr;
-void* getinput(char* msg, int type);
+char* getinput(char* msg, char alphabet[]);
 int drawtoolbar(int n);
 int incrtoolbar(void);
 int dincrtoolbar(void);
+int incrpanel(void);
+int dincrpanel(void);
 int getinfoVille(void);
 int getinfoCentrale(void);
 int getpower(void);
@@ -60,14 +67,15 @@ int loadFile(void);
 void drawnetwork(struct centrale* centrales);
 void init(void);
 int draw(void);
+void drawpanel(int offset);
 struct func getfnc(char map);
 
 
 // Toolbar is using the numbers to select the function needed
 // User can also define keybindings to some functions
 struct func funcs[] = {
-  {"HIDE",incrtoolbar,'a'}, 
-  {"HIDE",dincrtoolbar, 'b'}, 
+  {NULL,incrtoolbar,'a'}, 
+  {NULL,dincrtoolbar, 'b'}, 
   {"infoVille", getinfoVille, 'c'},
   {"infoCentrale", getinfoCentrale, 'd'},
   {"getPower", getpower, 'e'},
@@ -85,16 +93,18 @@ struct func funcs[] = {
   {"save", saveFile, 'q'},
   {"load", loadFile, 'r'},
   {"refresh", draw, 's'},
-  {"HIDE", NULL, '1'},
-  {"HIDE", NULL, '2'},
-  {"HIDE", NULL, '3'},
-  {"HIDE", NULL, '4'},
-  {"HIDE", NULL, '5'},
-  {"HIDE", NULL, '6'},
-  {"HIDE", NULL, '7'},
-  {"HIDE", NULL, '8'},
-  {"HIDE", NULL, '9'},
-  {"HIDE", NULL, '0'},
+  {"nextpanel", incrpanel, 't'},
+  {"prevpanel", dincrpanel, 'u'},
+  {NULL, NULL, '1'},
+  {NULL, NULL, '2'},
+  {NULL, NULL, '3'},
+  {NULL, NULL, '4'},
+  {NULL, NULL, '5'},
+  {NULL, NULL, '6'},
+  {NULL, NULL, '7'},
+  {NULL, NULL, '8'},
+  {NULL, NULL, '9'},
+  {NULL, NULL, '0'},
  
 };
 
@@ -105,57 +115,87 @@ int incrtoolbar(void){
   return 0;
 }
 int dincrtoolbar(void){
+  // TODO 0 check
   baroffset--;
   drawtoolbar(baroffset);
+  return 0;
+}
+
+int toggleToolbar(void){
+  scr.toolbar = -1;
+  draw();
   return 0;
 }
 
 
 // Find out how to get integer inputs
 int createVille(void){
-  char* name = getinput("Nom de la ville :", 0);
-  int id = getinput("Id :", 1);
+  char* name = getinput("Nom de la ville :", alphabet);
+  int id = atoi(getinput("Id :",num));
+  // TODO Check for error
   add_ville(id, name);
+  draw();
   return 0;
 }
 
 int createCentrale(void){
-  int id = getinput("Id :", 1);
+  int id = atoi(getinput("Id :",num));
   add_centrale(&centrales, id);
+  draw();
   return 0;
 }
 
 int createLigne(void){
-  int cid = getinput("Id de la centrale :", 1);
-  int vid = getinput("Id de la ville : ", 1);
-  int power = getinput("Puissance :", 1);
+  int cid = atoi(getinput("Id de la centrale :", num));
+  int vid = atoi(getinput("Id de la ville : ",num));
+  int power = atoi(getinput("Puissance :",num));
   add_ligne(get_centrale(centrales, cid), power, get_ville(vid));
+  draw();
   return 0;
 }
 
 int loadFile(void){
-  char* filename = getinput("Nom du fichier : ", 0);
+  char* filename = getinput("Nom du fichier : ", alphabet);
   load(filename, villes, centrales);
+  draw();
   return 0;
 }
 
 int saveFile(void){
-  char* filename = getinput("Nom du fichier : ", 0);
+  char* filename = getinput("Nom du fichier : ", alphabet);
   save(centrales, filename);
   return 0;
 }
 
+//TODO Possibility to add using the name
 int getinfoVille(void){
-  char* name = getinput("Nom de la ville : ", 0);
-  //TODO Link the name with the ID
+  int id = atoi(getinput("Nom de la ville : ", alphabet));
+  struct ville* sel = get_ville(id);
+  FILE* fp  = fopen(DATAPANEL, "w");
+  // fprintf(fp, "%s\n%d\n%d", sel->name, sel->code, getpower(sel->code));
+  draw();
   return 0;
 }
 
 int getinfoCentrale(void){
-  int id = getinput("Id centrale : ", 0);
-  //TODO Link the name with the ID
+  int id = atoi(getinput("Id centrale : ", num));
+  draw();
   return 0;
 }
+
+int listVille(void){
+  // Check if enough if not setup keys to move; should do that for this in general
+  listVilles(DATAPANEL); 
+  drawpanel(0);
+  return 0;
+}
+
+int listCentrale(){
+  listCentrales(DATAPANEL, centrales);
+  drawpanel(0);
+  return 0;
+}
+
 // Using the real index value for numbers as should not change. 
 // TODO Get the position for the '1' value and increment after that
 int drawtoolbar(int n){
@@ -167,7 +207,7 @@ int drawtoolbar(int n){
   char toolbar[COLONNES];
   while(1){
     int j = i % len;
-    if(funcs[j-1].name == NULL || strcmp(funcs[j-1].name, "HIDE") == 0)
+    if(funcs[j-1].name == NULL)
       continue;
     size = size - strlen(funcs[j-1].name) - 3;
     if (size < 0){
@@ -208,7 +248,7 @@ void showWarning(char* message){
 
 // TODO Fix under Windows
 // TODO Add the accepted character and check against them in windows
-void* getinput(char* msg, int type){
+char* getinput(char* msg, char alphabet[]){
   locate(0,LIGNES-1);
   puts(msg);
   locate(0,LIGNES);
@@ -234,10 +274,11 @@ void* getinput(char* msg, int type){
         x  =  x == 0 ? x : x - 1;
       }
       // Include numbers
-      else if ('A' <= k && k <= 'z'){
+      else if (memchr(alphabet, k, sizeof(alphabet))){
         if(x >= 100){
           showWarning("Ooops... Seems command you're typing is a bit too long");
-          // TODO Do something about it
+          memset(input, '0', sizeof(char)*100);
+          x = 0;
         }
         strcat(input, &k);
         locate(x, 27);
@@ -252,15 +293,27 @@ void showhelp(){
 }
 // Should it be replaced by static value ?
 // Assume that newline chars are placed
-void drawpanel(char data[]){
-  int y = scr.toolbar;
-  int i = 0;
-  // TODO Formatting everything
-  while(y <= LIGNES && data[i] != '\0'){
-    i++;
+//TODO Formatting
+//TODO Setup offset
+void drawpanel(int i){
+  int y = 0;
+  char s[100];
+  int j  = 0;
+  FILE* fp = fopen(DATAPANEL, "r");
+  while(fgets(s, sizeof s, fp)!=NULL){
+    if(j <= i){
+      j++;
+      continue;
+    }
+    locate(XSIDEBAR, y);
+    if(strlen(s) >= COLONNES){
+      printf("toolong");
+    }else{
+      printf("%s", s); 
+    }
+    y++;
   }
-  // Check if all the datas can be displayed if not inform user 
-  // Draw everything on the right of the screen
+  fclose(fp);
 }
 
 //TODO Moving around could be implemented but not mandatory for the moment

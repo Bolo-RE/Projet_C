@@ -2,9 +2,7 @@
 //Projet electricite GIF 2022 
 //Wed Oct 19 02:17:08 PM CEST 2022
 
-// TODO Replace all the printfs by log function
-// TODO Setup save centrales pointer to be passed to the other functions
-// TODO Remove the ID control by user, replace it by name for centrale (way better)
+// TODO Check if ID is already used by another centrale/ville before being added
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -39,6 +37,8 @@ int logmsg(char* message){
   if(fp == NULL){
     return -1;
   }
+  fputs(message, fp);
+  fclose(fp);
   // TODO Find out in which situation this can SEGV and how to prevent that
   return 0;
 }
@@ -62,16 +62,6 @@ struct ville* get_ville(int index){
   return NULL;
 }
 
-int reset_ville_position(){
-  struct ville* villes = get_p_ville();
-  while(villes != NULL){
-    villes->y = -1;
-    villes = villes->suivant;
-  }
-  return 0;
-}
-
-
 // Ajouter / Retirer ville
 int add_ville(int code, char* name){
   // printf("name is %s\n", name);
@@ -90,11 +80,27 @@ int add_ville(int code, char* name){
     //Spot value for the drawing functions
     next->y = -1;
   }else{
+    if(get_ville(code)!= NULL){
+      return -2;
+    }
     temp->name = name;
     temp->code = code;
     temp->y = -1;
     next->suivant = temp;
   }
+  return 0;
+}
+
+
+
+int listVilles(char* filename){
+  FILE* fp = fopen(filename, "w");
+  struct ville* villes = get_p_ville();
+  while(villes != NULL){
+    fputs(villes->name, fp);
+    villes = villes->suivant;
+  }
+  fclose(fp);
   return 0;
 }
 
@@ -121,6 +127,7 @@ int rm_ville(int code){
   }
   return -1;
 }
+
 
 
 
@@ -182,6 +189,15 @@ int rm_centrale(struct centrale** centrale, int id){
       }
     }
   }
+  return 0;
+}
+int listCentrales(char* filename, struct centrale* centrales){
+  FILE* fp = fopen(filename, "w");
+  while(centrales != NULL){
+    fprintf(fp, "%d\n", centrales->id);
+    centrales = centrales->suivant;
+  }
+  fclose(fp);
   return 0;
 }
 // Ajouter / Retirer ligne
