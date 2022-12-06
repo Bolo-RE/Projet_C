@@ -11,9 +11,11 @@
 #define XCENTRALE 4
 #define XVILLE 80
 #define XSIDEBAR 81
-#define OINDEX 19
+#define OINDEX 18
 // TODO Put that in tmp files in Windows version
 #define DATAPANEL "view.dat"
+#define SALPHA 42
+#define SNUM 10
 
 struct func {
   char* name;
@@ -42,7 +44,7 @@ static int paneloffset = 0;
 static struct ville* villes; 
 static struct centrale* centrales;
 static struct screen scr;
-char* getinput(char* msg, char alphabet[]);
+char* getinput(char* msg, char alphabet[], int salphabet);
 int drawtoolbar(int n);
 int incrtoolbar(void);
 int dincrtoolbar(void);
@@ -50,7 +52,6 @@ int incrpanel(void);
 int dincrpanel(void);
 int getinfoVille(void);
 int getinfoCentrale(void);
-int getpower(void);
 int setpower(void);
 int createVille(void);
 int createCentrale(void);
@@ -74,11 +75,10 @@ struct func getfnc(char map);
 // Toolbar is using the numbers to select the function needed
 // User can also define keybindings to some functions
 struct func funcs[] = {
-  {NULL,incrtoolbar,'a'}, 
-  {NULL,dincrtoolbar, 'b'}, 
+  {"",incrtoolbar,'a'}, 
+  {"",dincrtoolbar, 'b'}, 
   {"infoVille", getinfoVille, 'c'},
   {"infoCentrale", getinfoCentrale, 'd'},
-  {"getPower", getpower, 'e'},
   {"setPower", setpower, 'f'},
   {"createVille", createVille, 'g'},
   {"createCentrale", createCentrale, 'h'},
@@ -95,28 +95,44 @@ struct func funcs[] = {
   {"refresh", draw, 's'},
   {"nextpanel", incrpanel, 't'},
   {"prevpanel", dincrpanel, 'u'},
-  {NULL, NULL, '1'},
-  {NULL, NULL, '2'},
-  {NULL, NULL, '3'},
-  {NULL, NULL, '4'},
-  {NULL, NULL, '5'},
-  {NULL, NULL, '6'},
-  {NULL, NULL, '7'},
-  {NULL, NULL, '8'},
-  {NULL, NULL, '9'},
-  {NULL, NULL, '0'},
+  {"", NULL, '1'},
+  {"", NULL, '2'},
+  {"", NULL, '3'},
+  {"", NULL, '4'},
+  {"", NULL, '5'},
+  {"", NULL, '6'},
+  {"", NULL, '7'},
+  {"", NULL, '8'},
+  {"", NULL, '9'},
+  {"", NULL, '0'},
  
 };
 
+int setpower(void){
+  int id = atoi(getinput("Id: ", num, SNUM));
+  // addinfo(getpower_centrale(centrales, id));
+}
 
+int incrpanel(void){
+  paneloffset++;
+  drawpanel(paneloffset);
+  return 0;
+}
+
+int dincrpanel(void){
+  paneloffset = paneloffset == 0 ? 0  : paneloffset-1;
+  drawpanel(paneloffset);
+  return 0;
+}
 int incrtoolbar(void){
+  cls();
   baroffset++;
   drawtoolbar(baroffset);
   return 0;
 }
 int dincrtoolbar(void){
-  // TODO 0 check
-  baroffset--;
+  baroffset = baroffset <= 1 ? 1  : baroffset-1;
+  //TODO Fix the call here making everything crash
   drawtoolbar(baroffset);
   return 0;
 }
@@ -130,55 +146,73 @@ int toggleToolbar(void){
 
 // Find out how to get integer inputs
 int createVille(void){
-  char* name = getinput("Nom de la ville :", alphabet);
-  int id = atoi(getinput("Id :",num));
+  char* name = getinput("Nom de la ville :", alphabet, SALPHA);
+  int id = atoi(getinput("Id :",num, SNUM));
   // TODO Check for error
   add_ville(id, name);
   draw();
   return 0;
 }
 
+int rmVille(void){
+  int id = atoi(getinput("Id :",num, SNUM));
+  rm_ville(id);
+  draw();
+  return 0;
+}
+
+int rmCentrale(void){
+  int id = atoi(getinput("Id :",num, SNUM));
+  rm_centrale(&centrales, id);
+  draw();
+  return 0;
+}
+
 int createCentrale(void){
-  int id = atoi(getinput("Id :",num));
+  int id = atoi(getinput("Id :",num, SNUM));
   add_centrale(&centrales, id);
   draw();
   return 0;
 }
 
 int createLigne(void){
-  int cid = atoi(getinput("Id de la centrale :", num));
-  int vid = atoi(getinput("Id de la ville : ",num));
-  int power = atoi(getinput("Puissance :",num));
+  int cid = atoi(getinput("Id de la centrale :", num, SNUM));
+  int vid = atoi(getinput("Id de la ville : ",num, SNUM));
+  int power = atoi(getinput("Puissance :",num, SNUM));
   add_ligne(get_centrale(centrales, cid), power, get_ville(vid));
   draw();
   return 0;
 }
 
+int rmLigne(void){
+  return 0;
+}
+
 int loadFile(void){
-  char* filename = getinput("Nom du fichier : ", alphabet);
+  char* filename = getinput("Nom du fichier : ", alphabet, SALPHA);
   load(filename, villes, centrales);
   draw();
   return 0;
 }
 
 int saveFile(void){
-  char* filename = getinput("Nom du fichier : ", alphabet);
+  char* filename = getinput("Nom du fichier : ", alphabet, SALPHA);
   save(centrales, filename);
   return 0;
 }
 
 //TODO Possibility to add using the name
 int getinfoVille(void){
-  int id = atoi(getinput("Nom de la ville : ", alphabet));
+  int id = atoi(getinput("Nom de la ville : ", alphabet, SNUM));
   struct ville* sel = get_ville(id);
   FILE* fp  = fopen(DATAPANEL, "w");
-  // fprintf(fp, "%s\n%d\n%d", sel->name, sel->code, getpower(sel->code));
+  fprintf(fp, "%s\n%d\n%d", sel->name, sel->code, getpower_ville(centrales, sel->code));
   draw();
   return 0;
 }
 
 int getinfoCentrale(void){
-  int id = atoi(getinput("Id centrale : ", num));
+  int id = atoi(getinput("Id centrale : ", num, SNUM));
   draw();
   return 0;
 }
@@ -186,34 +220,39 @@ int getinfoCentrale(void){
 int listVille(void){
   // Check if enough if not setup keys to move; should do that for this in general
   listVilles(DATAPANEL); 
-  drawpanel(0);
+  drawpanel(1);
   return 0;
 }
 
 int listCentrale(){
   listCentrales(DATAPANEL, centrales);
-  drawpanel(0);
+  drawpanel(1);
   return 0;
 }
 
 // Using the real index value for numbers as should not change. 
 // TODO Get the position for the '1' value and increment after that
+// TODO Fix the value when decreasing
 int drawtoolbar(int n){
-  locate(0,scr.toolbar);
+  locate(0,0);
   int i = n;
+  int j = 0;
   int k = OINDEX;
   int size = COLONNES;
   int len = sizeof(funcs) / sizeof(struct func);
   char toolbar[COLONNES];
   while(1){
-    int j = i % len;
-    if(funcs[j-1].name == NULL)
+    j = i % len;
+    if(strlen(funcs[j].name) == 0){
+      i++;
       continue;
-    size = size - strlen(funcs[j-1].name) - 3;
+    }
+    //TODO Find magic formula that explain the offset value (-4)
+    size = size - strlen(funcs[j].name) - 4;
     if (size < 0){
       break;
     }
-    funcs[k].fun = funcs[j-1].fun;
+    funcs[k].fun = funcs[j].fun;
     sprintf(toolbar, "%s | %s",toolbar, funcs[j].name);
     i++;
     k++;
@@ -248,7 +287,7 @@ void showWarning(char* message){
 
 // TODO Fix under Windows
 // TODO Add the accepted character and check against them in windows
-char* getinput(char* msg, char alphabet[]){
+char* getinput(char* msg, char alphabet[], int salpha){
   locate(0,LIGNES-1);
   puts(msg);
   locate(0,LIGNES);
@@ -274,7 +313,7 @@ char* getinput(char* msg, char alphabet[]){
         x  =  x == 0 ? x : x - 1;
       }
       // Include numbers
-      else if (memchr(alphabet, k, sizeof(alphabet))){
+      else if (memchr(alphabet, k, salpha)){
         if(x >= 100){
           showWarning("Ooops... Seems command you're typing is a bit too long");
           memset(input, '0', sizeof(char)*100);
@@ -288,20 +327,21 @@ char* getinput(char* msg, char alphabet[]){
     }
 }
 
-void showhelp(){
+int showHelp(void){
   showWarning("Please refer to the manual at address : https://github.com/Bolo-RE/Projet_C/tree/dev-linux");
+  return 0;
 }
 // Should it be replaced by static value ?
 // Assume that newline chars are placed
 //TODO Formatting
-//TODO Setup offset
+//TODO Setup offset; should see the next page if not then change the value of scr.panel
 void drawpanel(int i){
   int y = 0;
   char s[100];
   int j  = 0;
   FILE* fp = fopen(DATAPANEL, "r");
   while(fgets(s, sizeof s, fp)!=NULL){
-    if(j <= i){
+    if(j <= i*LIGNES){
       j++;
       continue;
     }
@@ -317,6 +357,7 @@ void drawpanel(int i){
 }
 
 //TODO Moving around could be implemented but not mandatory for the moment
+//TODO Find a way to show the missing towns (maybe list them next to it in panel)
 //TODO Take in account that may be needed at the end of file -> just inform user if this is the case
 void drawnetwork(struct centrale* centrales){
   locate(XCENTRALE,1);
@@ -333,12 +374,12 @@ void drawnetwork(struct centrale* centrales){
         yville++;
       }
       int xline = XCENTRALE+2;
-      int yline = yville < ycentrale ? yville : ycentrale;
-      int ymax = yville > ycentrale ? yville : ycentrale;
+      int yline = yville > ycentrale ? ycentrale : yville;
+      int ymax = yville < ycentrale ? ycentrale : yville;
       // TODO Fix srand going too far
       // TODO color changing
       char* thighness = ".";
-      int offset = rand() % COLONNES;
+      int offset = rand() % XVILLE;
       if (lignes->puissance > 100)
         thighness = "o";
       if(lignes->puissance > 200)
@@ -351,19 +392,20 @@ void drawnetwork(struct centrale* centrales){
         }
       }
       else{
+        // TODO Fix issue with coordinates here
         while(xline <= offset){
           locate(xline, yville);
-          colorPrint(RED, WHITE, ".");
+          // colorPrint(BLUE, WHITE, thighness);
           xline++;
         }
         while(yline <= ymax){
           locate(xline, yline);
-          colorPrint(RED, WHITE, thighness);
+          colorPrint(BLUE, WHITE, thighness);
           yline++;
         }
         while(xline <= XVILLE-1){
-          locate(xline, yline);
-          colorPrint(RED, WHITE, thighness);
+          locate(xline, yville);
+          colorPrint(BLUE, WHITE, thighness);
           xline++;
         }
       }
@@ -380,8 +422,10 @@ void init(void){
   cls();
   int i = 0;
     for(int i =0; i < LIGNES;i++){
-      printXY(0,i, BORDER);
-      printXY(COLONNES,i, BORDER);
+      locate(0,i);
+      colorPrint(BLUE, NOCOLOR, "|");
+      locate(COLONNES,i);
+      colorPrint(BLUE, NOCOLOR, "|");
   }
 }
 
@@ -389,6 +433,9 @@ int draw(void){
   init();
   if(scr.toolbar != -1){
     drawtoolbar(scr.toolbar);
+  }
+  if(scr.infobar != -1){
+    drawpanel(scr.infobar);
   }
   if(scr.display != -1){    
     drawnetwork(centrales);
@@ -418,18 +465,18 @@ struct func getfnc(char map){
 
 void test(struct centrale* centrales, struct ville* villes){  
   set_p_ville((unsigned long)villes);
-  add_ville(1, "test");
-  add_ville(2, "test");
-  add_ville(3, "test");
-  add_ville(4, "test");
+  add_ville(1, "tes1");
+  add_ville(2, "tes2");
+  add_ville(3, "tes3");
+  add_ville(4, "tes4");
   add_centrale(&centrales, 1);
   add_centrale(&centrales, 2);
   add_centrale(&centrales, 3);
   add_centrale(&centrales, 4);
+  add_ligne(get_centrale(centrales, 4), 120, get_ville(3));
   add_ligne(get_centrale(centrales, 1), 120, get_ville(1));
-  add_ligne(get_centrale(centrales, 2), 120, get_ville(4));
-  add_ligne(get_centrale(centrales, 3), 120, get_ville(3));
   add_ligne(get_centrale(centrales, 2), 120, get_ville(3));
+  add_ligne(get_centrale(centrales, 2), 120, get_ville(4));
 }
 
 int main(int argc, char* argv[]){
@@ -437,29 +484,41 @@ int main(int argc, char* argv[]){
   srand(time(NULL));
   // Set the default values
   scr.display = 1;
-  scr.infobar = 0;
-  scr.input = 0;
-  scr.toolbar = 1;
+  scr.infobar = -1;
+  scr.input = -1;
+  scr.toolbar = 0;
   centrales = malloc(sizeof(struct centrale));
   villes = malloc(sizeof(struct ville));
   // test(centrales, villes);
   if(argc == 2){
+    // Not working at the moment
     if(strcmp(argv[1], "-h") == 0){
-      //TODO Print help
+      showHelp();
+      return 0;
     }
     // TODO Think about other cases possible
     else{
       load(argv[1], villes, centrales);
     }
   }
+  test(centrales, villes);
+  cls();
   hidecursor();
   saveDefaultColor();
+  while(1){    
+    cls();
+    resetYvilles();
+    drawnetwork(centrales);
+    getch();
+  }
+  // getch();
+  // drawtoolbar(0);
   // init();
   // cls();
   // draw();
   // draw();
   // while(1){
-  //   if(kbhit()){
+  //   // if(kbhit()){
   //     char k = getkey();
   //     struct func f = getfnc(k);
   //     if(strcmp(f.name,"NONE") == 0){
@@ -469,6 +528,6 @@ int main(int argc, char* argv[]){
   //     }
   //     // Pray pointer is pointing to some function
   //     f.fun();
-//   }
-//
+  //   }
+  // }
 }

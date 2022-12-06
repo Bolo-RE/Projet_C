@@ -92,6 +92,14 @@ int add_ville(int code, char* name){
 }
 
 
+int resetYvilles(void){
+  struct ville* villes = get_p_ville();
+  while(villes!=NULL){
+    villes->y = -1;
+    villes = villes->suivant;
+  }
+  return 0;
+}
 
 int listVilles(char* filename){
   FILE* fp = fopen(filename, "w");
@@ -249,22 +257,36 @@ void change_power(struct centrale* centrale, int puissance){
   }
 }
 // Recuperer la valeur de puissance d'une ville et la repartition / centrale
-void power_display(struct centrale* centrales, int code_ville){
+int getpower_ville(struct centrale* centrales, int code_ville){
   int p_total = 0;
-  while(centrales->suivant != NULL){
+  while(centrales != NULL){
     
     struct ligne* lignes = centrales->lignes;
-    while(lignes->suivant != NULL){
+    while(lignes != NULL){
       if(lignes->ville->code == code_ville){
-        printf("La centrale %d apporte %d energie a la ville %d", centrales->id, lignes->puissance, code_ville);  
-        // TODO how to print this information on the screen ?
         p_total += lignes->puissance;
       }
       lignes= lignes->suivant;
     }
     centrales = centrales->suivant;  
   }
-  printf("Au total, la ville %d recoit %d energie", code_ville, p_total);
+  return p_total;
+}
+
+int getpower_centrale(struct centrale* centrales, int code_centrale){
+  int p_total = 0;
+  while(centrales != NULL){
+    if(centrales->id == code_centrale){
+      
+    struct ligne* lignes = centrales->lignes;
+    while(lignes != NULL){
+      p_total = p_total + lignes->puissance;
+      lignes = lignes->suivant;
+    }
+      return p_total;
+  }
+    }
+  return -1;
 }
 
 // TODO For the moment the last saved file is wiped and we write everything back ; maybe thing of append?
