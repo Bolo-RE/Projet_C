@@ -43,7 +43,7 @@ La configuration par defaut des touches est la suivante :
 
 `l` -> supprimer une ligne
 
-`m` -> affiche l`aide ; egalment visible en lancant le programe avec l`option `-h`
+`m` -> affiche l'aide ; egalment visible en lancant le programe avec l'option `-h`
 
 `n` -> permet de cacher la toolbar
 
