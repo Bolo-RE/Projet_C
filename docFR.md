@@ -47,9 +47,9 @@ La configuration par defaut des touches est la suivante :
 
 `n` -> permet de cacher la toolbar
 
-`o` -> affiche les informations liees aux villes : ID et nom
+`o` -> affiche les informations liees aux villes : *ID et nom*
 
-`p` -> affiche les informations liees aux centrales et leurs lignes : ID, ID de la ligne, ID de la ville liee et la puissance contenue dans la ligne
+`p` -> affiche les informations liees aux centrales et leurs lignes : *ID, ID de la ligne, ID de la ville liee et la puissance contenue dans la ligne*
 
 `q` -> sauvegarder le reseau
 
