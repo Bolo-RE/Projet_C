@@ -21,40 +21,40 @@ Lorsque l'utilisateur demande a voir des donnees hors du reseau electrique, qui 
 ## Mapping des touches
 La configuration par defaut des touches est la suivante :
 
-'a' -> augmente de 1 vers la droite la position de la toolbar 
+`a` -> augmente de 1 vers la droite la position de la toolbar 
 
-'b' -> augmente de 1 vers la gauche la position de la toolbar 
+`b` -> augmente de 1 vers la gauche la position de la toolbar 
 
-'c' -> affiche la puissance recue par une ville
+`c` -> affiche la puissance recue par une ville
 
-'d' -> affiche la puissance generee par une centrale
+`d` -> affiche la puissance generee par une centrale
 
-'f' -> change la puissance contenue dans les lignes d'une centrale donnee
+`f` -> change la puissance contenue dans les lignes d`une centrale donnee
 
-'g' -> cree une ville
+`g` -> cree une ville
 
-'h' -> cree une centrale
+`h` -> cree une centrale
 
-'i' -> cree une ligne
+`i` -> cree une ligne
 
-'j' -> supprimer une ville
+`j` -> supprimer une ville
 
-'k' -> supprimer une centrale
+`k` -> supprimer une centrale
 
-'l' -> supprimer une ligne
+`l` -> supprimer une ligne
 
-'m' -> affiche l'aide ; egalment visible en lancant le programe avec l'option `-h`
+`m` -> affiche l`aide ; egalment visible en lancant le programe avec l`option `-h`
 
-'n' -> permet de cacher la toolbar
+`n` -> permet de cacher la toolbar
 
-'o' -> affiche les informations liees aux villes : ID et nom
+`o` -> affiche les informations liees aux villes : ID et nom
 
-'p' -> affiche les informations liees aux centrales et leurs lignes : ID, ID de la ligne, ID de la ville liee et la puissance contenue dans la ligne
+`p` -> affiche les informations liees aux centrales et leurs lignes : ID, ID de la ligne, ID de la ville liee et la puissance contenue dans la ligne
 
-'q' -> sauvegarder le reseau
+`q` -> sauvegarder le reseau
 
-'r' -> charger un fichier dans le reseau
+`r` -> charger un fichier dans le reseau
 
-'t' -> fait defiler le contenu du panneau de droite vers le bas
+`t` -> fait defiler le contenu du panneau de droite vers le bas
 
-'u' -> fait defiler le conteu du panneau de droite vers le haut
+`u` -> fait defiler le conteu du panneau de droite vers le haut
